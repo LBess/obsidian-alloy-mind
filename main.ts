@@ -20,15 +20,13 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 
 		this.addSettingTab(new TimeEntryTurnerSettingTab(this.app, this));
 
-		// TODO: Add a sidebar button to execute command 
-
 		this.addCommand({
 			'id': 'calculate-time',
 			'name': 'Calculate Time',
 			callback: () => this.calculateTimeFromActiveNote()
 		});
 
-		const ribbonIconEl = this.addRibbonIcon('wand', 'Add up time entries', (evt: MouseEvent) => {
+		this.addRibbonIcon('wand', 'Add up time entries', (evt: MouseEvent) => {
 			this.calculateTimeFromActiveNote();
 		});
 	}
@@ -95,6 +93,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		while (!match.done) {
 			let time = match.value.first();
 			if (!time || times.length == 2) {
+				match = it.next();
 				continue;
 			}
 

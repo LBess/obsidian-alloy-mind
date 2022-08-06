@@ -118,8 +118,8 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 			console.log(hours + "h");
 		}
 
-		new Notice("Total time calculated: " + totalTime + " hours");
-		console.log("Total time calculated: " + totalTime + " hours");
+		new Notice("Total time calculated: " + totalTime.toFixed(2) + " hours");
+		console.log("Total time calculated: " + totalTime.toFixed(2) + " hours");
 	}
 
 	private getWeekNameFromDate(dateStr: string): string {
@@ -131,8 +131,6 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		firstDayOfWeek.setDate(date.getDate() - date.getDay() - 1);
 		let lastDayOfWeek: Date = new Date(date);
 		lastDayOfWeek.setDate(date.getDate() - date.getDay() + 5);
-		console.log(firstDayOfWeek);
-		console.log(lastDayOfWeek);
 
 		let weekName: string = firstDayOfWeek.getFullYear() + " " + firstDayOfWeek.toISOString().substring(5, 10) + " thru " + lastDayOfWeek.toISOString().substring(5, 10);
 		console.log(dateStr + ": " + weekName);

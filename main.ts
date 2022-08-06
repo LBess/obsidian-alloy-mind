@@ -1,10 +1,11 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, Vault } from 'obsidian';
-import { readFileSync } from 'fs';
 
 interface TimeEntryTurnerSettings {
+	dailyNoteDirectory: string;
 }
 
 const DEFAULT_SETTINGS: TimeEntryTurnerSettings = {
+	dailyNoteDirectory: "Daily Notes"
 }
 
 interface TimeEntry {
@@ -29,6 +30,10 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		this.addRibbonIcon('wand', 'Add up time entries', (evt: MouseEvent) => {
 			this.calculateTimeFromActiveNote();
 		});
+
+		this.addRibbonIcon('sync', 'Organize daily notes', (evt: MouseEvent) => {
+			this.moveDailyNotesToTheirWeekDirectory();
+		});
 	}
 
 	onunload() {
@@ -43,6 +48,41 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
+	private async moveDailyNotesToTheirWeekDirectory() {
+		let allFiles = this.app.vault.getMarkdownFiles();
+		let filesToMove = []
+		for (let i = 0; i < allFiles.length; i++) {
+			let file = allFiles[i];
+			if (file.parent.name != this.settings.dailyNoteDirectory) {
+				continue;
+			}
+
+			filesToMove.push(file);
+		}
+
+		for (let i = 0; i < filesToMove.length; i++) {
+			let file = filesToMove[i];
+			let weekName = this.getWeekNameFromDate(file.basename);
+			let newPath = this.settings.dailyNoteDirectory + "/" + weekName;
+
+			console.log("Moving " + file.name);
+			let directoryExists: boolean = await this.app.vault.adapter.exists(newPath);
+			if (directoryExists) {
+				this.app.vault.rename(file, newPath + "/" + file.name);
+			}
+			else {
+				console.log("Creating directory " + newPath);
+				this.app.vault.createFolder(newPath).then(() => {
+					this.app.vault.rename(file, newPath + "/" + file.name);
+				}).catch((error: Error) => {
+					if (error.message == "Folder already exists.") {
+						this.app.vault.rename(file, newPath + "/" + file.name);
+					}
+				});
+			}
+		}
+	}
+
 	private async calculateTimeFromActiveNote() {
 		let activeFile = this.app.workspace.getActiveFile();
 		if (!activeFile) {
@@ -50,17 +90,17 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		}
 
 		// TODO: Potentially do a non cachedRead here
-		let fileStr = await this.app.vault.cachedRead(activeFile);
-		let fileLines = fileStr.split('\n');
+		let fileStr: string = await this.app.vault.cachedRead(activeFile);
+		let fileLines: string[] = fileStr.split('\n');
 
 		let timeEntries: TimeEntry[] = [];
 		for (let i = 0; i < fileLines.length; i++) {
-			let line = fileLines[i];
+			let line: string = fileLines[i];
 			if (!line) {
 				continue;
 			}
 
-			let times = this.getTimesFromRow(line);
+			let times: string[] = this.getTimesFromRow(line);
 			if (times.length == 2) {
 				let timeEntry: TimeEntry = {
 					start: times[0],
@@ -71,23 +111,43 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 			}
 		}
 
-		let totalTime = 0;
+		let totalTime: number = 0;
 		for (let i = 0; i < timeEntries.length; i++) {
-			let hours = this.calculateTimeInHours(timeEntries[i]);
-			console.log(hours + "h");
+			let hours: number = this.calculateTimeInHours(timeEntries[i]);
 			totalTime += hours;
+			console.log(hours + "h");
 		}
 
-		new Notice('Total time calculated: ' + totalTime + ' hours');
-		console.log('Total time calculated: ' + totalTime + ' hours');
+		new Notice("Total time calculated: " + totalTime + " hours");
+		console.log("Total time calculated: " + totalTime + " hours");
 	}
 
-	private getTimesFromRow(row: string) {
+	private getWeekNameFromDate(dateStr: string): string {
+		// date is YYYY-MM-DD
+		let date: Date = new Date(dateStr);
+		let firstDayOfWeek: Date = new Date(date);
+		// date.getDay() is the day of the week, [0-6] inclusive
+		// date.getDate() is the day of the month, so [0-27/28/29/30] depending on the month
+		firstDayOfWeek.setDate(date.getDate() - date.getDay() - 1);
+		let lastDayOfWeek: Date = new Date(date);
+		lastDayOfWeek.setDate(date.getDate() - date.getDay() + 5);
+		console.log(firstDayOfWeek);
+		console.log(lastDayOfWeek);
+
+		let weekName: string = firstDayOfWeek.getFullYear() + " " + firstDayOfWeek.toISOString().substring(5, 10) + " thru " + lastDayOfWeek.toISOString().substring(5, 10);
+		console.log(dateStr + ": " + weekName);
+		// YYYY MM-DD thru MM-DD
+		// TODO: Allow for the user to change this format
+		// TODO: Allow for option for Weekdays only?
+		return weekName;
+	}
+
+	private getTimesFromRow(row: string): string[] {
 		if (row.match(/[0-2]?[0-9]:?[0-5][0-9]\ ?-\ ?[0-2]?[0-9]:?[0-5][0-9]/) == null) {
 			return [];
 		}
 
-		let times = [];
+		let times: string[] = [];
 		let it = row.matchAll(/[0-2]?[0-9]:?[0-5][0-9]/g);
 		let match = it.next();
 		while (!match.done) {
@@ -106,7 +166,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		return times;
 	}
 
-	private calculateTimeInHours(timeEntry: TimeEntry) {
+	private calculateTimeInHours(timeEntry: TimeEntry): number {
 		let startTimeHour = 0;
 		let startTimeMinute = 0;
 		if (timeEntry.start.length == 3) {
@@ -151,5 +211,17 @@ class TimeEntryTurnerSettingTab extends PluginSettingTab {
 		let { containerEl } = this;
 		containerEl.empty();
 		containerEl.createEl("h2", {text: "Settings for Time Entry Turner"});
+		new Setting(containerEl)
+				.setName("Daily Note Root Directory")
+				.setDesc("The root directory for your daily notes. e.g. If it is a directory called \"Daily Notes\", then this setting should be \"Daily Notes\" no quotations.")
+				.addText(text => text
+					.setPlaceholder("Enter the directory")
+					.setValue(this.plugin.settings.dailyNoteDirectory)
+					.onChange(async (value) => {
+						let directory: string = value;
+						this.plugin.settings.dailyNoteDirectory = directory;
+						this.plugin.saveSettings();
+					})
+				)
 	}
 }

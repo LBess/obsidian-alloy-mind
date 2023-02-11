@@ -36,10 +36,6 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		});
 	}
 
-	onunload() {
-
-	}
-
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
@@ -50,25 +46,16 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 
 	private async moveDailyNotesToTheirWeekDirectory() {
 		const allFiles = this.app.vault.getMarkdownFiles();
-		let filesToMove = []
-		for (let i = 0; i < allFiles.length; i++) {
-			const file = allFiles[i];
-			if (file.parent.path === this.settings.dailyNoteDirectory) {
-				filesToMove.push(file);
-			}
-		}
+		const filesToMove = allFiles.filter(file => file.parent.path === this.settings.dailyNoteDirectory);
 
-		console.log(filesToMove.length);
-		for (let i = 0; i < filesToMove.length; i++) {
-			const file = filesToMove[i];
+		filesToMove.forEach(async file => {
 			const weekName = this.getWeekNameFromDate(file.basename);
 			if (!weekName) {
-				continue;
+				return;
 			}
 
 			const directory = `${this.settings.dailyNoteDirectory}/${weekName}`;
 			const newPath = `${directory}/${file.name}`;
-			console.log('2');
 
 			try {
 				const directoryExists = await this.app.vault.adapter.exists(directory);
@@ -84,7 +71,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 					await this.app.vault.rename(file, newPath);
 				}
 			}
-		}
+		})
 	}
 
 	private async calculateTimeFromActiveNote() {
@@ -98,27 +85,26 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		const fileLines: string[] = fileStr.split('\n');
 
 		const timeEntries: TimeEntry[] = [];
-		for (let i = 0; i < fileLines.length; i++) {
-			const line: string = fileLines[i];
+		fileLines.forEach(line => {
 			if (!line) {
-				continue;
+				return;
 			}
 
 			const times: string[] = this.getTimesFromRow(line);
 			if (times.length == 2) {
-				let timeEntry: TimeEntry = {
+				const timeEntry: TimeEntry = {
 					start: times[0],
 					end: times[1]
 				}
 				timeEntries.push(timeEntry);
 			}
-		}
+		});
 
 		let totalTime = 0;
-		for (let i = 0; i < timeEntries.length; i++) {
-			const hours = this.calculateTimeInHours(timeEntries[i]);
+		timeEntries.forEach(timeEntry => {
+			const hours = this.calculateTimeInHours(timeEntry);
 			totalTime += hours;
-		}
+		});
 
 		new Notice(`Total time calculated: ${totalTime.toFixed(2)} hours`);
 	}

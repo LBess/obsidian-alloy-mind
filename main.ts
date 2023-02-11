@@ -1,11 +1,11 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, Vault } from 'obsidian';
+import { App, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 interface TimeEntryTurnerSettings {
 	dailyNoteDirectory: string;
 }
 
 const DEFAULT_SETTINGS: TimeEntryTurnerSettings = {
-	dailyNoteDirectory: "Daily Notes"
+	dailyNoteDirectory: 'Daily Notes'
 }
 
 interface TimeEntry {
@@ -49,91 +49,94 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 	}
 
 	private async moveDailyNotesToTheirWeekDirectory() {
-		let allFiles = this.app.vault.getMarkdownFiles();
+		const allFiles = this.app.vault.getMarkdownFiles();
 		let filesToMove = []
 		for (let i = 0; i < allFiles.length; i++) {
-			let file = allFiles[i];
-			if (file.parent.name != this.settings.dailyNoteDirectory) {
+			const file = allFiles[i];
+			if (file.parent.path === this.settings.dailyNoteDirectory) {
+				filesToMove.push(file);
+			}
+		}
+
+		console.log(filesToMove.length);
+		for (let i = 0; i < filesToMove.length; i++) {
+			const file = filesToMove[i];
+			const weekName = this.getWeekNameFromDate(file.basename);
+			if (!weekName) {
 				continue;
 			}
 
-			filesToMove.push(file);
-		}
+			const directory = `${this.settings.dailyNoteDirectory}/${weekName}`;
+			const newPath = `${directory}/${file.name}`;
+			console.log('2');
 
-		for (let i = 0; i < filesToMove.length; i++) {
-			let file = filesToMove[i];
-			let weekName = this.getWeekNameFromDate(file.basename);
-			let newPath = this.settings.dailyNoteDirectory + "/" + weekName;
+			try {
+				const directoryExists = await this.app.vault.adapter.exists(directory);
+				if (!directoryExists) {
+					await this.app.vault.createFolder(directory);
+				}
 
-			console.log("Moving " + file.name);
-			let directoryExists: boolean = await this.app.vault.adapter.exists(newPath);
-			if (directoryExists) {
-				this.app.vault.rename(file, newPath + "/" + file.name);
-			}
-			else {
-				console.log("Creating directory " + newPath);
-				this.app.vault.createFolder(newPath).then(() => {
-					this.app.vault.rename(file, newPath + "/" + file.name);
-				}).catch((error: Error) => {
-					if (error.message == "Folder already exists.") {
-						this.app.vault.rename(file, newPath + "/" + file.name);
-					}
-				});
+				await this.app.vault.rename(file, newPath);
+
+			} catch (error) {
+				console.error(error);
+				if (error.message === 'Folder already exists') {
+					await this.app.vault.rename(file, newPath);
+				}
 			}
 		}
 	}
 
 	private async calculateTimeFromActiveNote() {
-		let activeFile = this.app.workspace.getActiveFile();
+		const activeFile = this.app.workspace.getActiveFile();
 		if (!activeFile) {
 			return;
 		}
 
 		// TODO: Potentially do a non cachedRead here
-		let fileStr: string = await this.app.vault.cachedRead(activeFile);
-		let fileLines: string[] = fileStr.split('\n');
+		const fileStr: string = await this.app.vault.cachedRead(activeFile);
+		const fileLines: string[] = fileStr.split('\n');
 
-		let timeEntries: TimeEntry[] = [];
+		const timeEntries: TimeEntry[] = [];
 		for (let i = 0; i < fileLines.length; i++) {
-			let line: string = fileLines[i];
+			const line: string = fileLines[i];
 			if (!line) {
 				continue;
 			}
 
-			let times: string[] = this.getTimesFromRow(line);
+			const times: string[] = this.getTimesFromRow(line);
 			if (times.length == 2) {
 				let timeEntry: TimeEntry = {
 					start: times[0],
 					end: times[1]
 				}
-				console.log(times[0] + ", " + times[1]);
 				timeEntries.push(timeEntry);
 			}
 		}
 
-		let totalTime: number = 0;
+		let totalTime = 0;
 		for (let i = 0; i < timeEntries.length; i++) {
-			let hours: number = this.calculateTimeInHours(timeEntries[i]);
+			const hours = this.calculateTimeInHours(timeEntries[i]);
 			totalTime += hours;
-			console.log(hours + "h");
 		}
 
-		new Notice("Total time calculated: " + totalTime.toFixed(2) + " hours");
-		console.log("Total time calculated: " + totalTime.toFixed(2) + " hours");
+		new Notice(`Total time calculated: ${totalTime.toFixed(2)} hours`);
 	}
 
-	private getWeekNameFromDate(dateStr: string): string {
-		// date is YYYY-MM-DD
-		let date: Date = new Date(dateStr);
-		let firstDayOfWeek: Date = new Date(date);
+	private getWeekNameFromDate(dateStr: string): string | undefined {
+		if (isNaN(Date.parse(dateStr))) {
+			console.warn(`${dateStr} is not a valid date string`);
+			return undefined;
+		}
+		const date = new Date(dateStr);
+		const firstDayOfWeek = new Date(date);
 		// date.getDay() is the day of the week, [0-6] inclusive
 		// date.getDate() is the day of the month, so [0-27/28/29/30] depending on the month
 		firstDayOfWeek.setDate(date.getDate() - date.getDay() - 1);
-		let lastDayOfWeek: Date = new Date(date);
+		const lastDayOfWeek = new Date(date);
 		lastDayOfWeek.setDate(date.getDate() - date.getDay() + 5);
 
-		let weekName: string = firstDayOfWeek.getFullYear() + " " + firstDayOfWeek.toISOString().substring(5, 10) + " thru " + lastDayOfWeek.toISOString().substring(5, 10);
-		console.log(dateStr + ": " + weekName);
+		const weekName = `${firstDayOfWeek.getFullYear()} ${firstDayOfWeek.toISOString().substring(5, 10)} thru ${lastDayOfWeek.toISOString().substring(5, 10)}`;
 		// YYYY MM-DD thru MM-DD
 		// TODO: Allow for the user to change this format
 		// TODO: Allow for option for Weekdays only?
@@ -145,12 +148,12 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 			return [];
 		}
 
-		let times: string[] = [];
-		let it = row.matchAll(/[0-2]?[0-9]:?[0-5][0-9]/g);
+		const times: string[] = [];
+		const it = row.matchAll(/[0-2]?[0-9]:?[0-5][0-9]/g);
 		let match = it.next();
 		while (!match.done) {
 			let time = match.value.first();
-			if (!time || times.length == 2) {
+			if (!time || times.length === 2) {
 				match = it.next();
 				continue;
 			}
@@ -167,7 +170,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 	private calculateTimeInHours(timeEntry: TimeEntry): number {
 		let startTimeHour = 0;
 		let startTimeMinute = 0;
-		if (timeEntry.start.length == 3) {
+		if (timeEntry.start.length === 3) {
 			startTimeHour = Number(timeEntry.start.substring(0, 1));
 			startTimeMinute = Number(timeEntry.start.substring(1, 3));
 		}
@@ -178,7 +181,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 
 		let endTimeHour = 0;
 		let endTimeMinute = 0;
-		if (timeEntry.end.length == 3) {
+		if (timeEntry.end.length === 3) {
 			endTimeHour = Number(timeEntry.end.substring(0, 1));
 			endTimeMinute = Number(timeEntry.end.substring(1, 3));
 		}
@@ -206,17 +209,16 @@ class TimeEntryTurnerSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		let { containerEl } = this;
+		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", {text: "Settings for Time Entry Turner"});
+		containerEl.createEl('h2', {text: 'Settings for Time Entry Turner'});
 		new Setting(containerEl)
-				.setName("Daily Note Root Directory")
-				.setDesc("The root directory for your daily notes. e.g. If it is a directory called \"Daily Notes\", then this setting should be \"Daily Notes\" no quotations.")
+				.setName('Daily Note Root Directory')
+				.setDesc('The root directory for your daily notes. e.g. If it is a directory called "Daily Notes", then this setting should be "Daily Notes" no quotations.')
 				.addText(text => text
-					.setPlaceholder("Enter the directory")
+					.setPlaceholder('Enter the directory')
 					.setValue(this.plugin.settings.dailyNoteDirectory)
-					.onChange(async (value) => {
-						let directory: string = value;
+					.onChange(async directory => {
 						this.plugin.settings.dailyNoteDirectory = directory;
 						this.plugin.saveSettings();
 					})

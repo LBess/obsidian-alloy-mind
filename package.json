@@ -1,11 +1,12 @@
 {
 	"name": "obsidian-time-entry-turner",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "A utility plugin for Obsidian",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build:deploy": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && cp main.js ${OBSIDIAN}/.obsidian/plugins/obsidian-time-entry-turner/ && cp manifest.json ${OBSIDIAN}/.obsidian/plugins/obsidian-time-entry-turner/",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"keywords": [],

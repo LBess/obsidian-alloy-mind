@@ -49,6 +49,11 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		const filesToMove = allFiles.filter(file => file.parent.path === this.settings.dailyNoteDirectory);
 
 		filesToMove.forEach(async file => {
+			const today = new Date();
+			if (file.basename === today.toISOString().substring(0, 10)) {
+				return;
+			}
+
 			const weekName = this.getWeekNameFromDate(file.basename);
 			if (!weekName) {
 				return;

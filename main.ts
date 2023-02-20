@@ -1,11 +1,15 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
 interface TimeEntryTurnerSettings {
 	dailyNoteDirectory: string;
+	dreamDirectory: string;
+	dreamSection: string;
 }
 
 const DEFAULT_SETTINGS: TimeEntryTurnerSettings = {
-	dailyNoteDirectory: 'Daily Notes'
+	dailyNoteDirectory: 'Daily Notes',
+	dreamDirectory: 'Dream Journal',
+	dreamSection: '### Dream Journal',
 }
 
 interface TimeEntry {
@@ -44,7 +48,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	private async moveDailyNotesToTheirWeekDirectory() {
+	private moveDailyNotesToTheirWeekDirectory = async () => {
 		const allFiles = this.app.vault.getMarkdownFiles();
 		const filesToMove = allFiles.filter(file => file.parent.path === this.settings.dailyNoteDirectory);
 
@@ -61,7 +65,6 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 
 			const directory = `${this.settings.dailyNoteDirectory}/${weekName}`;
 			const newPath = `${directory}/${file.name}`;
-
 			try {
 				const directoryExists = await this.app.vault.adapter.exists(directory);
 				if (!directoryExists) {
@@ -69,7 +72,6 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 				}
 
 				await this.app.vault.rename(file, newPath);
-
 			} catch (error) {
 				console.error(error);
 				if (error.message === 'Folder already exists') {
@@ -79,15 +81,8 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		})
 	}
 
-	private async calculateTimeFromActiveNote() {
-		const activeFile = this.app.workspace.getActiveFile();
-		if (!activeFile) {
-			return;
-		}
-
-		// TODO: Potentially do a non cachedRead here
-		const fileStr: string = await this.app.vault.cachedRead(activeFile);
-		const fileLines: string[] = fileStr.split('\n');
+	private calculateTimeFromActiveNote = async () => {
+		const fileLines = await this.getLinesFromActiveNote();
 
 		const timeEntries: TimeEntry[] = [];
 		fileLines.forEach(line => {
@@ -114,7 +109,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		new Notice(`Total time calculated: ${totalTime.toFixed(2)} hours`);
 	}
 
-	private getWeekNameFromDate(dateStr: string): string | undefined {
+	private getWeekNameFromDate = (dateStr: string): string | undefined => {
 		if (isNaN(Date.parse(dateStr))) {
 			console.warn(`${dateStr} is not a valid date string`);
 			return undefined;
@@ -134,8 +129,8 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		return weekName;
 	}
 
-	private getTimesFromRow(row: string): string[] {
-		if (row.match(/[0-2]?[0-9]:?[0-5][0-9]\ ?-\ ?[0-2]?[0-9]:?[0-5][0-9]/) == null) {
+	private getTimesFromRow = (row: string): string[] => {
+		if (row.match(/[0-2]?[0-9]:?[0-5][0-9]\ ?-\ ?[0-2]?[0-9]:?[0-5][0-9]/) === null) {
 			return [];
 		}
 
@@ -158,7 +153,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		return times;
 	}
 
-	private calculateTimeInHours(timeEntry: TimeEntry): number {
+	private calculateTimeInHours = (timeEntry: TimeEntry): number => {
 		let startTimeHour = 0;
 		let startTimeMinute = 0;
 		if (timeEntry.start.length === 3) {
@@ -189,6 +184,51 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 		return (endTimeHour - startTimeHour) + ((endTimeMinute - startTimeMinute) / 60);
 	}
 
+	private copyActiveNoteDreamSectionToJournal = async () => {
+		const fileLines = await this.getLinesFromActiveNote();
+		const dreamSectionStartIdx = fileLines.findIndex(line => line === this.settings.dreamSection);
+
+		// We assume the dream section to end at the next ### OR the end of the file, whichever comes first
+		const dreamSectionEndIdx = fileLines.findIndex((line, idx) => {
+			if (idx <= dreamSectionStartIdx) return false;
+
+			if (line.startsWith('###')) return true;
+
+			return false;
+		});
+
+		const dreamSectionLines = fileLines.filter((_, idx) => {
+			if (idx <= dreamSectionEndIdx) return false;
+
+			if (dreamSectionEndIdx !== -1 && idx >= dreamSectionEndIdx) return false;
+
+			return true;
+		});
+
+		let yearStr = this.getActiveFile().basename.substring(0, 4);
+		if (yearStr.match(/\d{4}/g) === null) {
+			const today = new Date();
+			yearStr = today.getFullYear().toString();
+		}
+
+	}
+
+	private getLinesFromActiveNote = async (): Promise<string[]> => {
+		const activeFile = this.getActiveFile();
+
+		// TODO: Potentially do a non cachedRead here
+		const fileStr = await this.app.vault.cachedRead(activeFile);
+		return fileStr.split('\n');
+	}
+
+	private getActiveFile = (): TFile => {
+		const activeFile = this.app.workspace.getActiveFile();
+		if (!activeFile) {
+			throw Error('No active file');
+		}
+
+		return activeFile;
+	}
 }
 
 class TimeEntryTurnerSettingTab extends PluginSettingTab {

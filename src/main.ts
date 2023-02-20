@@ -1,4 +1,6 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { getActiveFile, getLinesFromActiveNote } from './helpers';
+import { calculateTimeFromActiveNote, getWeekNameFromDate } from './time';
 
 interface TimeEntryTurnerSettings {
     dailyNoteDirectory: string;
@@ -12,11 +14,6 @@ const DEFAULT_SETTINGS: TimeEntryTurnerSettings = {
     dreamSection: '### Dream Journal'
 };
 
-interface TimeEntry {
-    start: string;
-    end: string;
-}
-
 export default class TimeEntryTurnerPlugin extends Plugin {
     settings: TimeEntryTurnerSettings;
 
@@ -28,14 +25,14 @@ export default class TimeEntryTurnerPlugin extends Plugin {
         this.addCommand({
             id: 'calculate-time',
             name: 'Calculate Time',
-            callback: () => this.calculateTimeFromActiveNote()
+            callback: () => calculateTimeFromActiveNote(this.app)
         });
 
-        this.addRibbonIcon('wand', 'Add up time entries', (evt: MouseEvent) => {
-            this.calculateTimeFromActiveNote();
+        this.addRibbonIcon('wand', 'Add up time entries', () => {
+            calculateTimeFromActiveNote(this.app);
         });
 
-        this.addRibbonIcon('sync', 'Organize daily notes', (evt: MouseEvent) => {
+        this.addRibbonIcon('sync', 'Organize daily notes', () => {
             this.moveDailyNotesToTheirWeekDirectory();
         });
     }
@@ -58,7 +55,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
                 return;
             }
 
-            const weekName = this.getWeekNameFromDate(file.basename);
+            const weekName = getWeekNameFromDate(file.basename);
             if (!weekName) {
                 return;
             }
@@ -81,111 +78,8 @@ export default class TimeEntryTurnerPlugin extends Plugin {
         });
     };
 
-    private calculateTimeFromActiveNote = async () => {
-        const fileLines = await this.getLinesFromActiveNote();
-
-        const timeEntries: TimeEntry[] = [];
-        fileLines.forEach((line) => {
-            if (!line) {
-                return;
-            }
-
-            const times: string[] = this.getTimesFromRow(line);
-            if (times.length == 2) {
-                const timeEntry: TimeEntry = {
-                    start: times[0],
-                    end: times[1]
-                };
-                timeEntries.push(timeEntry);
-            }
-        });
-
-        let totalTime = 0;
-        timeEntries.forEach((timeEntry) => {
-            const hours = this.calculateTimeInHours(timeEntry);
-            totalTime += hours;
-        });
-
-        new Notice(`Total time calculated: ${totalTime.toFixed(2)} hours`);
-    };
-
-    private getWeekNameFromDate = (dateStr: string): string | undefined => {
-        if (isNaN(Date.parse(dateStr))) {
-            console.warn(`${dateStr} is not a valid date string`);
-            return undefined;
-        }
-        const date = new Date(dateStr);
-        const firstDayOfWeek = new Date(date);
-        // date.getDay() is the day of the week, [0-6] inclusive
-        // date.getDate() is the day of the month, so [0-27/28/29/30] depending on the month
-        firstDayOfWeek.setDate(date.getDate() - date.getDay() - 1);
-        const lastDayOfWeek = new Date(date);
-        lastDayOfWeek.setDate(date.getDate() - date.getDay() + 5);
-
-        const weekName = `${firstDayOfWeek.getFullYear()} ${firstDayOfWeek
-            .toISOString()
-            .substring(5, 10)} thru ${lastDayOfWeek.toISOString().substring(5, 10)}`;
-        // YYYY MM-DD thru MM-DD
-        // TODO: Allow for the user to change this format
-        // TODO: Allow for option for Weekdays only?
-        return weekName;
-    };
-
-    private getTimesFromRow = (row: string): string[] => {
-        if (row.match(/[0-2]?[0-9]:?[0-5][0-9] ?- ?[0-2]?[0-9]:?[0-5][0-9]/) === null) {
-            return [];
-        }
-
-        const times: string[] = [];
-        const it = row.matchAll(/[0-2]?[0-9]:?[0-5][0-9]/g);
-        let match = it.next();
-        while (!match.done) {
-            let time = match.value.first();
-            if (!time || times.length === 2) {
-                match = it.next();
-                continue;
-            }
-
-            time = time.replace(':', '');
-            times.push(time);
-
-            match = it.next();
-        }
-
-        return times;
-    };
-
-    private calculateTimeInHours = (timeEntry: TimeEntry): number => {
-        let startTimeHour = 0;
-        let startTimeMinute = 0;
-        if (timeEntry.start.length === 3) {
-            startTimeHour = Number(timeEntry.start.substring(0, 1));
-            startTimeMinute = Number(timeEntry.start.substring(1, 3));
-        } else {
-            startTimeHour = Number(timeEntry.start.substring(0, 2));
-            startTimeMinute = Number(timeEntry.start.substring(2, 4));
-        }
-
-        let endTimeHour = 0;
-        let endTimeMinute = 0;
-        if (timeEntry.end.length === 3) {
-            endTimeHour = Number(timeEntry.end.substring(0, 1));
-            endTimeMinute = Number(timeEntry.end.substring(1, 3));
-        } else {
-            endTimeHour = Number(timeEntry.end.substring(0, 2));
-            endTimeMinute = Number(timeEntry.end.substring(2, 4));
-        }
-
-        if (endTimeHour < startTimeHour) {
-            // e.g. 11:00 - 1:30
-            endTimeHour += 12;
-        }
-
-        return endTimeHour - startTimeHour + (endTimeMinute - startTimeMinute) / 60;
-    };
-
     private copyActiveNoteDreamSectionToJournal = async () => {
-        const fileLines = await this.getLinesFromActiveNote();
+        const fileLines = await getLinesFromActiveNote(this.app);
         const dreamSectionStartIdx = fileLines.findIndex((line) => line === this.settings.dreamSection);
 
         // We assume the dream section to end at the next ### OR the end of the file, whichever comes first
@@ -205,7 +99,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             return true;
         });
 
-        let yearStr = this.getActiveFile().basename.substring(0, 4);
+        let yearStr = getActiveFile(this.app).basename.substring(0, 4);
         if (yearStr.match(/\d{4}/g) === null) {
             const today = new Date();
             yearStr = today.getFullYear().toString();
@@ -213,23 +107,6 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 
         // satisfying linter
         return dreamSectionLines;
-    };
-
-    private getLinesFromActiveNote = async (): Promise<string[]> => {
-        const activeFile = this.getActiveFile();
-
-        // TODO: Potentially do a non cachedRead here
-        const fileStr = await this.app.vault.cachedRead(activeFile);
-        return fileStr.split('\n');
-    };
-
-    private getActiveFile = (): TFile => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) {
-            throw Error('No active file');
-        }
-
-        return activeFile;
     };
 }
 

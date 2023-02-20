@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import { App, Notice } from 'obsidian';
 import { getLinesFromActiveNote } from './helpers';
 
@@ -34,25 +35,19 @@ const calculateTimeFromActiveNote = async (app: App) => {
     new Notice(`Total time calculated: ${totalTime.toFixed(2)} hours`);
 };
 
-const getWeekNameFromDate = (dateStr: string): string | undefined => {
-    if (isNaN(Date.parse(dateStr))) {
-        console.warn(`${dateStr} is not a valid date string`);
-        return undefined;
+const getWeekNameFromDate = (dateStr: string): string => {
+    const date = DateTime.fromISO(dateStr);
+    if (date.invalidReason) {
+        throw Error(`${dateStr} is not a valid date string`);
     }
-    const date = new Date(dateStr);
-    const firstDayOfWeek = new Date(date);
-    // date.getDay() is the day of the week, [0-6] inclusive
-    // date.getDate() is the day of the month, so [0-27/28/29/30] depending on the month
-    firstDayOfWeek.setDate(date.getDate() - date.getDay() - 1);
-    const lastDayOfWeek = new Date(date);
-    lastDayOfWeek.setDate(date.getDate() - date.getDay() + 5);
+    // Note that weeks start on Mondays
+    const startOfWeek = date.startOf('week');
+    const endOfWeek = date.endOf('week');
 
-    const weekName = `${firstDayOfWeek.getFullYear()} ${firstDayOfWeek
-        .toISOString()
-        .substring(5, 10)} thru ${lastDayOfWeek.toISOString().substring(5, 10)}`;
     // YYYY MM-DD thru MM-DD
-    // TODO: Allow for the user to change this format
-    // TODO: Allow for option for Weekdays only?
+    const weekName = `${startOfWeek.year} ${startOfWeek.toISO().substring(5, 10)} thru ${endOfWeek
+        .toISO()
+        .substring(5, 10)}`;
     return weekName;
 };
 

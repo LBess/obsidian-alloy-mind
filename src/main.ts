@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { getActiveFile, getLinesFromActiveNote } from './helpers';
 import { calculateTimeFromActiveNote, getWeekNameFromDate } from './time';
@@ -50,19 +51,15 @@ export default class TimeEntryTurnerPlugin extends Plugin {
         const filesToMove = allFiles.filter((file) => file.parent.path === this.settings.dailyNoteDirectory);
 
         filesToMove.forEach(async (file) => {
-            const today = new Date();
-            if (file.basename === today.toISOString().substring(0, 10)) {
+            const today = DateTime.now();
+            if (file.basename === today.toISO().substring(0, 10)) {
                 return;
             }
 
-            const weekName = getWeekNameFromDate(file.basename);
-            if (!weekName) {
-                return;
-            }
-
-            const directory = `${this.settings.dailyNoteDirectory}/${weekName}`;
-            const newPath = `${directory}/${file.name}`;
             try {
+                const weekName = getWeekNameFromDate(file.basename);
+                const directory = `${this.settings.dailyNoteDirectory}/${weekName}`;
+                const newPath = `${directory}/${file.name}`;
                 const directoryExists = await this.app.vault.adapter.exists(directory);
                 if (!directoryExists) {
                     await this.app.vault.createFolder(directory);
@@ -70,10 +67,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 
                 await this.app.vault.rename(file, newPath);
             } catch (error) {
-                console.error(error);
-                if (error.message === 'Folder already exists') {
-                    await this.app.vault.rename(file, newPath);
-                }
+                console.warn(error);
             }
         });
     };
@@ -101,8 +95,8 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 
         let yearStr = getActiveFile(this.app).basename.substring(0, 4);
         if (yearStr.match(/\d{4}/g) === null) {
-            const today = new Date();
-            yearStr = today.getFullYear().toString();
+            const today = DateTime.now();
+            yearStr = today.year.toString();
         }
 
         // satisfying linter

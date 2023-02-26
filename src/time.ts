@@ -1,14 +1,14 @@
 import { DateTime } from 'luxon';
 import { App, Notice } from 'obsidian';
-import { getLinesFromActiveNote } from './helpers';
+import { getLinesFromActiveFile } from './helpers';
 
 interface TimeEntry {
     start: string;
     end: string;
 }
 
-const calculateTimeFromActiveNote = async (app: App) => {
-    const fileLines = await getLinesFromActiveNote(app);
+const calculateTimeFromActiveFile = async (app: App) => {
+    const fileLines = await getLinesFromActiveFile(app);
 
     const timeEntries: TimeEntry[] = [];
     fileLines.forEach((line) => {
@@ -32,7 +32,7 @@ const calculateTimeFromActiveNote = async (app: App) => {
         totalTime += hours;
     });
 
-    new Notice(`Total time calculated: ${totalTime.toFixed(2)} hours`);
+    new Notice(`${totalTime.toFixed(2)} hours`);
 };
 
 const getWeekNameFromDate = (dateStr: string): string => {
@@ -104,4 +104,4 @@ const calculateTimeInHours = (timeEntry: TimeEntry): number => {
     return endTimeHour - startTimeHour + (endTimeMinute - startTimeMinute) / 60;
 };
 
-export { calculateTimeFromActiveNote, getWeekNameFromDate, getTimesFromRow, calculateTimeInHours };
+export { calculateTimeFromActiveFile, getWeekNameFromDate, getTimesFromRow, calculateTimeInHours };

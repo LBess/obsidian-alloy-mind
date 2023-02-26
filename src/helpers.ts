@@ -1,20 +1,30 @@
-import { App, TFile } from 'obsidian';
+import { App, Notice, TFile } from 'obsidian';
+
+export class NoActiveFileError extends Error {}
 
 const getActiveFile = (app: App): TFile => {
     const activeFile = app.workspace.getActiveFile();
     if (!activeFile) {
-        throw Error('No active file');
+        throw new NoActiveFileError();
     }
 
     return activeFile;
 };
 
-const getLinesFromActiveNote = async (app: App): Promise<string[]> => {
-    const activeFile = getActiveFile(app);
+const getLinesFromActiveFile = async (app: App): Promise<string[]> => {
+    try {
+        const activeFile = getActiveFile(app);
 
-    // TODO: Potentially do a non cachedRead here
-    const fileStr = await app.vault.cachedRead(activeFile);
-    return fileStr.split('\n');
+        // TODO: Potentially do a non cachedRead here
+        const fileStr = await app.vault.cachedRead(activeFile);
+        return fileStr.split('\n');
+    } catch (error) {
+        console.error(error);
+        if (error instanceof NoActiveFileError) {
+            new Notice('No active file');
+        }
+        return [];
+    }
 };
 
 const createDirectoryIfNonExistent = async (directory: string, app: App): Promise<void> => {
@@ -31,4 +41,4 @@ const createFileIfNonExistent = async (filePath: string, app: App): Promise<void
     await app.vault.create(filePath, '');
 };
 
-export { getLinesFromActiveNote, getActiveFile, createDirectoryIfNonExistent, createFileIfNonExistent };
+export { getLinesFromActiveFile, getActiveFile, createDirectoryIfNonExistent, createFileIfNonExistent };

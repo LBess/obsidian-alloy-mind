@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { App, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { createDirectoryIfNonExistent, createFileIfNonExistent, getLinesFromActiveNote } from './helpers';
-import { calculateTimeFromActiveNote, getWeekNameFromDate } from './time';
+import { createDirectoryIfNonExistent, createFileIfNonExistent, getLinesFromActiveFile } from './helpers';
+import { calculateTimeFromActiveFile, getWeekNameFromDate } from './time';
 
 interface TimeEntryTurnerSettings {
     dailyNoteDirectory: string;
@@ -28,11 +28,11 @@ export default class TimeEntryTurnerPlugin extends Plugin {
         this.addCommand({
             id: 'calculate-time',
             name: 'Calculate Time',
-            callback: () => calculateTimeFromActiveNote(this.app)
+            callback: () => calculateTimeFromActiveFile(this.app)
         });
 
         this.addRibbonIcon('wand', 'Add up time entries', () => {
-            calculateTimeFromActiveNote(this.app);
+            calculateTimeFromActiveFile(this.app);
         });
 
         this.addRibbonIcon('sync', 'Organize daily notes', () => {
@@ -99,7 +99,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             return;
         }
 
-        const fileLines = await getLinesFromActiveNote(this.app);
+        const fileLines = await getLinesFromActiveFile(this.app);
         const dreamSectionStartIdx = fileLines.findIndex((line) => line === this.settings.dreamSection);
         if (dreamSectionStartIdx === -1) {
             new Notice('No dreams to append');

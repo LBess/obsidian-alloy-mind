@@ -17,4 +17,18 @@ const getLinesFromActiveNote = async (app: App): Promise<string[]> => {
     return fileStr.split('\n');
 };
 
-export { getLinesFromActiveNote, getActiveFile };
+const createDirectoryIfNonExistent = async (directory: string, app: App): Promise<void> => {
+    const directoryExists = await app.vault.adapter.exists(directory);
+    if (directoryExists) return;
+
+    await app.vault.createFolder(directory);
+};
+
+const createFileIfNonExistent = async (filePath: string, app: App): Promise<void> => {
+    const fileExists = await app.vault.adapter.exists(filePath);
+    if (fileExists) return;
+
+    await app.vault.create(filePath, '');
+};
+
+export { getLinesFromActiveNote, getActiveFile, createDirectoryIfNonExistent, createFileIfNonExistent };

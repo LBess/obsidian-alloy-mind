@@ -17,7 +17,7 @@ const calculateTimeFromActiveNote = async (app: App) => {
         }
 
         const times: string[] = getTimesFromRow(line);
-        if (times.length == 2) {
+        if (times.length === 2) {
             const timeEntry: TimeEntry = {
                 start: times[0],
                 end: times[1]

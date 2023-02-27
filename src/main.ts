@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
-import { App, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { createDirectoryIfNonExistent, createFileIfNonExistent, getLinesFromActiveFile } from './helpers';
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
+import { createDirectoryIfNonExistent, createFileIfNonExistent, getLinesFromFile } from './helpers';
 import { calculateTimeFromActiveFile, getWeekNameFromDate } from './time';
 
 interface TimeEntryTurnerSettings {
@@ -99,10 +99,10 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             return;
         }
 
-        const fileLines = await getLinesFromActiveFile(this.app);
+        const fileLines = await getLinesFromFile(activeFile, this.app);
         const dreamSectionStartIdx = fileLines.findIndex((line) => line === this.settings.dreamSection);
         if (dreamSectionStartIdx === -1) {
-            new Notice('No dreams to append');
+            new Notice('No dreams to add');
             return;
         }
 
@@ -125,7 +125,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             }
         });
         if (dreamSectionLines.length === 0) {
-            new Notice('No dreams to append');
+            new Notice('No dreams to add');
             return;
         }
 
@@ -141,15 +141,21 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             const dreamJournalName = `${year} Dreams`;
             const dreamJournalPath = `${this.settings.dreamDirectory}/${dreamJournalName}.md`;
             await createFileIfNonExistent(dreamJournalPath, this.app);
+            const dreamJournalFile = this.app.vault.getAbstractFileByPath(dreamJournalPath) as TFile;
 
             const dreamEntryTitle = `${SUBSECTION_PREFIX} ${activeFile.basename.substring(0, 10)}`;
+            const dreamJournalLines = await getLinesFromFile(dreamJournalFile, this.app);
+            if (dreamJournalLines.find((line) => line === dreamEntryTitle)) {
+                new Notice('Dreams already added to journal');
+                return;
+            }
             const dataToAppend = `\n\n${dreamEntryTitle}\n${dreamSectionLines.join('\n')}`;
             await this.app.vault.adapter.append(dreamJournalPath, dataToAppend);
 
-            new Notice('Dreams appended');
+            new Notice('Dreams added');
         } catch (error) {
             console.warn(error);
-            new Notice('Failed to append dreams');
+            new Notice('Failed to add dreams');
         }
     };
 }

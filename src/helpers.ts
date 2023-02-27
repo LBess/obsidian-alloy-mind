@@ -11,12 +11,9 @@ const getActiveFile = (app: App): TFile => {
     return activeFile;
 };
 
-const getLinesFromActiveFile = async (app: App): Promise<string[]> => {
+const getLinesFromFile = async (file: TFile, app: App): Promise<string[]> => {
     try {
-        const activeFile = getActiveFile(app);
-
-        // TODO: Potentially do a non cachedRead here
-        const fileStr = await app.vault.cachedRead(activeFile);
+        const fileStr = await app.vault.read(file);
         return fileStr.split('\n');
     } catch (error) {
         console.error(error);
@@ -41,4 +38,4 @@ const createFileIfNonExistent = async (filePath: string, app: App): Promise<void
     await app.vault.create(filePath, '');
 };
 
-export { getLinesFromActiveFile, getActiveFile, createDirectoryIfNonExistent, createFileIfNonExistent };
+export { getLinesFromFile, getActiveFile, createDirectoryIfNonExistent, createFileIfNonExistent };

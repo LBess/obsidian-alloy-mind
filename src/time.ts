@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { App, Notice } from 'obsidian';
-import { getLinesFromActiveFile } from './helpers';
+import { getActiveFile, getLinesFromFile, NoActiveFileError } from './helpers';
 
 interface TimeEntry {
     start: string;
@@ -8,7 +8,17 @@ interface TimeEntry {
 }
 
 const calculateTimeFromActiveFile = async (app: App) => {
-    const fileLines = await getLinesFromActiveFile(app);
+    let fileLines: string[] = [];
+    try {
+        const activeFile = await getActiveFile(app);
+        fileLines = await getLinesFromFile(activeFile, app);
+    } catch (error) {
+        console.warn(error);
+        if (error instanceof NoActiveFileError) {
+            new Notice('No active file');
+        }
+        return;
+    }
 
     const timeEntries: TimeEntry[] = [];
     fileLines.forEach((line) => {

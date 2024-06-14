@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-time-entry-turner",
-	"name": "Time Entry Turner",
-	"version": "0.3.0",
-	"minAppVersion": "0.12.0",
-	"description": "Is there a perfect world?",
-	"author": "Liam Bessell",
-	"authorUrl": "https://obsidian.md",
-	"isDesktopOnly": false
+    "id": "obsidian-time-entry-turner",
+    "name": "Time Entry Turner",
+    "version": "0.4.0",
+    "minAppVersion": "0.12.0",
+    "description": "Is there a perfect world?",
+    "author": "Liam Bessell",
+    "authorUrl": "https://obsidian.md",
+    "isDesktopOnly": false
 }

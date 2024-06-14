@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { App, Notice } from 'obsidian';
+import { App, Notice, TFile } from 'obsidian';
 import { getActiveFile, getLinesFromFile, NoActiveFileError } from './helpers';
 
 interface TimeEntry {
@@ -10,7 +10,7 @@ interface TimeEntry {
 const calculateTimeFromActiveFile = async (app: App) => {
     let fileLines: string[] = [];
     try {
-        const activeFile = await getActiveFile(app);
+        const activeFile = getActiveFile(app);
         fileLines = await getLinesFromFile(activeFile, app);
     } catch (error) {
         console.warn(error);
@@ -22,9 +22,7 @@ const calculateTimeFromActiveFile = async (app: App) => {
 
     const timeEntries: TimeEntry[] = [];
     fileLines.forEach((line) => {
-        if (!line) {
-            return;
-        }
+        if (!line) return;
 
         const times: string[] = getTimesFromRow(line);
         if (times.length === 2) {
@@ -59,6 +57,19 @@ const getWeekNameFromDate = (dateStr: string): string => {
         .toISO()
         .substring(5, 10)}`;
     return weekName;
+};
+
+const compareDates = (noteA: TFile, noteB: TFile) => {
+    const dateA = DateTime.fromISO(noteA.basename);
+    const dateB = DateTime.fromISO(noteB.basename);
+
+    if (dateA < dateB) {
+        return -1;
+    } else if (dateA > dateB) {
+        return 1;
+    } else {
+        return 0;
+    }
 };
 
 const getTimesFromRow = (row: string): string[] => {
@@ -114,4 +125,4 @@ const calculateTimeInHours = (timeEntry: TimeEntry): number => {
     return endTimeHour - startTimeHour + (endTimeMinute - startTimeMinute) / 60;
 };
 
-export { calculateTimeFromActiveFile, getWeekNameFromDate, getTimesFromRow, calculateTimeInHours };
+export { calculateTimeFromActiveFile, getWeekNameFromDate, getTimesFromRow, calculateTimeInHours, compareDates };

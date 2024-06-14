@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 import { createDirectoryIfNonExistent, createFileIfNonExistent, getLinesFromFile } from './helpers';
-import { calculateTimeFromActiveFile, getWeekNameFromDate } from './time';
+import { calculateTimeFromActiveFile, compareDates, getWeekNameFromDate } from './time';
 
 interface TimeEntryTurnerSettings {
     dailyNoteDirectory: string;
@@ -35,12 +35,13 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             calculateTimeFromActiveFile(this.app);
         });
 
-        this.addRibbonIcon('sync', 'Organize daily notes', () => {
-            this.moveDailyNotesToTheirWeekDirectory();
-        });
-
-        this.addRibbonIcon('cloud-moon', 'Copy dreams to journal', () => {
-            this.copyActiveNoteDreamSectionToJournal();
+        this.addRibbonIcon('sync', 'Organize daily notes', async () => {
+            const notesToMove = await this.getDailyNotesToMove();
+            for (let i = 0; i < notesToMove.length; i++) {
+                const note = notesToMove[i];
+                await this.copyDreamsToJournal(note);
+            }
+            await this.moveNotesToTheirWeekDirectory(notesToMove);
         });
     }
 
@@ -52,11 +53,11 @@ export default class TimeEntryTurnerPlugin extends Plugin {
         await this.saveData(this.settings);
     }
 
-    private moveDailyNotesToTheirWeekDirectory = async () => {
+    private getDailyNotesToMove = async () => {
         const allMarkdownFiles = this.app.vault.getMarkdownFiles();
 
         const today = DateTime.now();
-        const filesToMove = allMarkdownFiles.filter((file) => {
+        const notesToMove = allMarkdownFiles.filter((file) => {
             if (file.basename === today.toISO().substring(0, 10)) {
                 return false;
             }
@@ -64,47 +65,42 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             return file.parent.path === this.settings.dailyNoteDirectory;
         });
 
-        if (filesToMove.length === 0) {
-            new Notice('No files to move');
+        return notesToMove.sort(compareDates);
+    };
+
+    private moveNotesToTheirWeekDirectory = async (notes: TFile[]) => {
+        if (notes.length === 0) {
+            new Notice('No notes to move');
             return;
         }
 
-        let filesMoved = 0;
-        filesToMove.forEach(async (file) => {
+        let notesMoved = 0;
+        notes.forEach(async (file) => {
             try {
                 const weekName = getWeekNameFromDate(file.basename);
                 const directory = `${this.settings.dailyNoteDirectory}/${weekName}`;
                 const newPath = `${directory}/${file.name}`;
                 await createDirectoryIfNonExistent(directory, app);
                 await this.app.vault.rename(file, newPath);
-                filesMoved += 1;
+                notesMoved += 1;
             } catch (error) {
                 console.warn(`Error moving ${file.basename}`);
                 console.warn(error);
             }
         });
 
-        if (filesMoved === 0) {
-            new Notice('No files moved');
+        if (notesMoved === 0) {
+            new Notice('No notes moved');
             return;
         }
 
-        new Notice(`${filesMoved} files moved`);
+        new Notice(`${notesMoved} notes moved`);
     };
 
-    private copyActiveNoteDreamSectionToJournal = async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) {
-            new Notice('No active file');
-            return;
-        }
-
-        const fileLines = await getLinesFromFile(activeFile, this.app);
+    private copyDreamsToJournal = async (note: TFile) => {
+        const fileLines = await getLinesFromFile(note, this.app);
         const dreamSectionStartIdx = fileLines.findIndex((line) => line === this.settings.dreamSection);
-        if (dreamSectionStartIdx === -1) {
-            new Notice('No dreams to add');
-            return;
-        }
+        if (dreamSectionStartIdx === -1) return;
 
         // We assume the dream section to end at the next ### OR the end of the file, whichever comes first
         const dreamSectionEndIdx = fileLines.findIndex((line, idx) => {
@@ -124,12 +120,9 @@ export default class TimeEntryTurnerPlugin extends Plugin {
                 return idx < dreamSectionEndIdx;
             }
         });
-        if (dreamSectionLines.length === 0) {
-            new Notice('No dreams to add');
-            return;
-        }
+        if (dreamSectionLines.length === 0) return;
 
-        let year = activeFile.basename.substring(0, 4);
+        let year = note.basename.substring(0, 4);
         if (!year.match(/\d{4}/g)) {
             const today = DateTime.now();
             year = today.year.toString();
@@ -143,7 +136,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             await createFileIfNonExistent(dreamJournalPath, this.app);
             const dreamJournalFile = this.app.vault.getAbstractFileByPath(dreamJournalPath) as TFile;
 
-            const dreamEntryTitle = `${SUBSECTION_PREFIX} ${activeFile.basename.substring(0, 10)}`;
+            const dreamEntryTitle = `${SUBSECTION_PREFIX} ${note.basename.substring(0, 10)}`;
             const dreamJournalLines = await getLinesFromFile(dreamJournalFile, this.app);
             if (dreamJournalLines.find((line) => line === dreamEntryTitle)) {
                 new Notice('Dreams already added to journal');
@@ -151,8 +144,6 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             }
             const dataToAppend = `\n\n${dreamEntryTitle}\n${dreamSectionLines.join('\n')}`;
             await this.app.vault.adapter.append(dreamJournalPath, dataToAppend);
-
-            new Notice('Dreams added');
         } catch (error) {
             console.warn(error);
             new Notice('Failed to add dreams');
@@ -177,6 +168,7 @@ class TimeEntryTurnerSettingTab extends PluginSettingTab {
             .setDesc(
                 'The root directory for your daily notes. e.g. If it is a directory called "Daily Notes", then this setting should be "Daily Notes" no quotations.'
             )
+            // TODO: make this into a file search
             .addText((text) =>
                 text
                     .setPlaceholder('Enter the directory')

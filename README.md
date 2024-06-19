@@ -4,6 +4,7 @@
 
 1. Move the downloaded release zip file into `../YOUR_VAULT/.obsidian/plugins`
 2. Unzip the release file
+3. Run `yarn install`
 
 ## Build
 

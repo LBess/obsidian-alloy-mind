@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { App, Notice, TFile } from 'obsidian';
-import { getActiveFile, getLinesFromFile, NoActiveFileError } from './helpers';
+import { getActiveFile, getLinesFromFile, getMonthAndDayFromISO, NoActiveFileError } from './helpers';
 
 interface TimeEntry {
     start: string;
@@ -53,9 +53,9 @@ const getWeekNameFromDate = (dateStr: string): string => {
     const endOfWeek = date.endOf('week');
 
     // YYYY MM-DD thru MM-DD
-    const weekName = `${startOfWeek.year} ${startOfWeek.toISO().substring(5, 10)} thru ${endOfWeek
-        .toISO()
-        .substring(5, 10)}`;
+    const weekName = `${startOfWeek.year} ${getMonthAndDayFromISO(startOfWeek.toISO())} thru ${getMonthAndDayFromISO(
+        endOfWeek.toISO()
+    )}`;
     return weekName;
 };
 

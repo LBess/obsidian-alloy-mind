@@ -1,10 +1,10 @@
 {
     "id": "obsidian-time-entry-turner",
     "name": "Time Entry Turner",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "minAppVersion": "0.12.0",
-    "description": "Is there a perfect world?",
+    "description": "A custom Obsidian plugin for my various tasks.",
     "author": "Liam Bessell",
     "authorUrl": "https://obsidian.md",
-    "isDesktopOnly": false
+    "isDesktopOnly": true
 }

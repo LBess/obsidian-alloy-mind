@@ -1,5 +1,14 @@
 # Obisidian Time Entry Turner
 
+## Description
+
+A custom plugin I built to help with my usage of the the Obsidian note taking app.
+
+Current features:
+1. Organize daily notes from a flat root directory into weekly directories
+2. Copy daily notes' dream journal entries into a yearly dream journal note
+3. Add up time entries for a given daily note (This is a holdover from my time using the app as a consultant)
+
 ## Installation
 
 1. Move the downloaded release zip file into `../YOUR_VAULT/.obsidian/plugins`
@@ -17,7 +26,7 @@
 
 ## Debug
 
-Type "ctrl + shift + i" on Windows, or "cmd + option + i" on Mac in the Obsidian Vault to open the console
+Type "ctrl + shift + i" on Windows or "option + cmd + i" on Mac in the Obsidian Vault to open the console
 
 ## TODO:
 

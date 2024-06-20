@@ -4,23 +4,21 @@ import {
     buildDreamSectionFilter,
     createFolderIfNonExistent,
     createFileIfNonExistent,
-    getDateFromISO,
-    getLinesFromFile,
-    getYearFromISO
-} from './helpers';
-import { calculateTimeFromActiveFile, compareDates, getWeekNameFromDate } from './time';
-import { StringFormatter } from './StringFormatter';
+    getLinesFromFile
+} from './utils/obsidianUtils';
+import { calculateTimeFromActiveFile, compareDatesAscending, getWeekNameFromDate } from './utils/dateTimeUtils';
 import { SUBSECTION_PREFIX } from './Constants';
+import { buildDreamEntry, buildDreamEntryTitle, buildPath, getDateFromISO, getYearFromISO } from './utils/stringUtils';
 
 interface TimeEntryTurnerSettings {
     dailyNoteFolder: string;
-    dreamFolder: string;
+    dreamJournalFolder: string;
     dreamSection: string;
 }
 
 const DEFAULT_SETTINGS: TimeEntryTurnerSettings = {
     dailyNoteFolder: 'Daily Notes',
-    dreamFolder: 'Dream Journal',
+    dreamJournalFolder: 'Dream Journal',
     dreamSection: '### Dream Journal'
 };
 
@@ -44,8 +42,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
 
         this.addRibbonIcon('sync', 'Organize daily notes', async () => {
             const notes = await this.getDailyNotesToMove();
-            for (let i = 0; i < notes.length; i++) {
-                const note = notes[i];
+            for (const note of notes) {
                 await this.copyDreamsToJournal(note);
             }
             await this.moveNotesToTheirWeekFolder(notes);
@@ -71,7 +68,7 @@ export default class TimeEntryTurnerPlugin extends Plugin {
             return isNotInWeekFolder;
         });
 
-        return notesToMove.sort(compareDates);
+        return notesToMove.sort(compareDatesAscending);
     };
 
     private copyDreamsToJournal = async (note: TFile) => {
@@ -100,21 +97,20 @@ export default class TimeEntryTurnerPlugin extends Plugin {
         }
 
         try {
-            await createFolderIfNonExistent(this.settings.dreamFolder, app);
+            await createFolderIfNonExistent(this.settings.dreamJournalFolder, app);
 
             const dreamJournalName = `${year} Dreams`;
-            const dreamJournalPath = StringFormatter.buildPath(this.settings.dreamFolder, dreamJournalName, '.md');
+            const dreamJournalPath = buildPath(this.settings.dreamJournalFolder, dreamJournalName, '.md');
             await createFileIfNonExistent(dreamJournalPath, this.app);
             const dreamJournalFile = this.app.vault.getAbstractFileByPath(dreamJournalPath) as TFile;
 
-            const dreamEntryTitle = StringFormatter.buildDreamEntryTitle(note);
+            const dreamEntryTitle = buildDreamEntryTitle(note);
             const dreamJournalLines = await getLinesFromFile(dreamJournalFile, this.app);
             if (dreamJournalLines.find((line) => line === dreamEntryTitle)) {
-                new Notice('Dreams already added to journal');
                 return;
             }
 
-            const dreamEntry = StringFormatter.buildDreamEntry(dreamEntryTitle, dreamSectionLines);
+            const dreamEntry = buildDreamEntry(dreamEntryTitle, dreamSectionLines);
             await this.app.vault.adapter.append(dreamJournalPath, dreamEntry);
         } catch (error) {
             console.warn(error);
@@ -129,18 +125,18 @@ export default class TimeEntryTurnerPlugin extends Plugin {
         }
 
         let notesMoved = 0;
-        notes.forEach(async (file) => {
+        for (const note of notes) {
             try {
-                const weekName = getWeekNameFromDate(file.basename);
-                const folder = StringFormatter.buildPath(this.settings.dailyNoteFolder, weekName);
-                const newPath = StringFormatter.buildPath(folder, file.name);
+                const weekName = getWeekNameFromDate(note.basename);
+                const folder = buildPath(this.settings.dailyNoteFolder, weekName);
+                const newPath = buildPath(folder, note.name);
                 await createFolderIfNonExistent(folder, app);
-                await this.app.vault.rename(file, newPath);
+                await this.app.vault.rename(note, newPath);
                 notesMoved += 1;
             } catch (error) {
-                console.warn(`Error moving ${file.basename}`, error);
+                console.warn(`Error moving ${note.basename}`, error);
             }
-        });
+        }
 
         if (notesMoved === 0) {
             new Notice('No notes moved');
@@ -177,5 +173,21 @@ class TimeEntryTurnerSettingTab extends PluginSettingTab {
                         this.plugin.saveSettings();
                     })
             );
+        new Setting(containerEl)
+            .setName('Dream Journal Folder')
+            .setDesc('The root folder for your yearly dream journals.')
+            .addText((text) =>
+                text
+                    .setPlaceholder('Enter the Folder')
+                    .setValue(this.plugin.settings.dreamJournalFolder)
+                    .onChange(async (folder) => {
+                        this.plugin.settings.dreamJournalFolder = folder;
+                        this.plugin.saveSettings();
+                    })
+            );
+        containerEl.createEl('h2', { text: 'Description' });
+        containerEl.createEl('p', {
+            text: 'This is a custom Obsidian plugin I created to help with my usage of the app.'
+        });
     }
 }

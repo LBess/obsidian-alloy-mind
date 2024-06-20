@@ -1,13 +1,14 @@
 import { DateTime } from 'luxon';
 import { App, Notice, TFile } from 'obsidian';
-import { getActiveFile, getLinesFromFile, getMonthAndDayFromISO, NoActiveFileError } from './helpers';
+import { getActiveFile, getLinesFromFile, NoActiveFileError } from './obsidianUtils';
+import { getMonthAndDayFromISO } from './stringUtils';
 
 interface TimeEntry {
     start: string;
     end: string;
 }
 
-const calculateTimeFromActiveFile = async (app: App) => {
+export const calculateTimeFromActiveFile = async (app: App) => {
     let fileLines: string[] = [];
     try {
         const activeFile = getActiveFile(app);
@@ -43,7 +44,7 @@ const calculateTimeFromActiveFile = async (app: App) => {
     new Notice(`${totalTime.toFixed(2)} hours`);
 };
 
-const getWeekNameFromDate = (dateStr: string): string => {
+export const getWeekNameFromDate = (dateStr: string): string => {
     const date = DateTime.fromISO(dateStr);
     if (date.invalidReason) {
         throw Error(`${dateStr} is not a valid date string`);
@@ -59,20 +60,7 @@ const getWeekNameFromDate = (dateStr: string): string => {
     return weekName;
 };
 
-const compareDates = (noteA: TFile, noteB: TFile) => {
-    const dateA = DateTime.fromISO(noteA.basename);
-    const dateB = DateTime.fromISO(noteB.basename);
-
-    if (dateA < dateB) {
-        return -1;
-    } else if (dateA > dateB) {
-        return 1;
-    } else {
-        return 0;
-    }
-};
-
-const getTimesFromRow = (row: string): string[] => {
+export const getTimesFromRow = (row: string): string[] => {
     if (row.match(/[0-2]?[0-9]:?[0-5][0-9] ?- ?[0-2]?[0-9]:?[0-5][0-9]/) === null) {
         return [];
     }
@@ -96,7 +84,7 @@ const getTimesFromRow = (row: string): string[] => {
     return times;
 };
 
-const calculateTimeInHours = (timeEntry: TimeEntry): number => {
+export const calculateTimeInHours = (timeEntry: TimeEntry): number => {
     let startTimeHour = 0;
     let startTimeMinute = 0;
     if (timeEntry.start.length === 3) {
@@ -125,4 +113,15 @@ const calculateTimeInHours = (timeEntry: TimeEntry): number => {
     return endTimeHour - startTimeHour + (endTimeMinute - startTimeMinute) / 60;
 };
 
-export { calculateTimeFromActiveFile, getWeekNameFromDate, getTimesFromRow, calculateTimeInHours, compareDates };
+export const compareDatesAscending = (noteA: TFile, noteB: TFile) => {
+    const dateA = DateTime.fromISO(noteA.basename);
+    const dateB = DateTime.fromISO(noteB.basename);
+
+    if (dateA < dateB) {
+        return -1;
+    } else if (dateA > dateB) {
+        return 1;
+    } else {
+        return 0;
+    }
+};

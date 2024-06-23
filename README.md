@@ -1,4 +1,4 @@
-# Obisidian Time Entry Turner
+# Obisidian Alloy Mind
 
 ## Description
 
@@ -8,6 +8,8 @@ Current features:
 1. Organize daily notes from a flat root directory into weekly directories
 2. Copy daily notes' dream journal entries into a yearly dream journal note
 3. Add up time entries for a given daily note (This is a holdover from my time using the app as a consultant)
+
+![Alloy Mind](resources/images/alloy-mind.jpg)
 
 ## Installation
 

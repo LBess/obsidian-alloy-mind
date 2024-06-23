@@ -1,9 +1,9 @@
 {
-    "id": "obsidian-time-entry-turner",
-    "name": "Time Entry Turner",
-    "version": "0.5.0",
+    "id": "obsidian-alloy-mind",
+    "name": "Obsidian Alloy Mind",
+    "version": "1.0.0",
     "minAppVersion": "0.12.0",
-    "description": "A custom Obsidian plugin for my various tasks.",
+    "description": "A utility plugin for Obsidian.",
     "author": "Liam Bessell",
     "authorUrl": "https://obsidian.md",
     "isDesktopOnly": true

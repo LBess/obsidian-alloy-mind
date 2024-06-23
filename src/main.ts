@@ -10,34 +10,30 @@ import { calculateTimeFromActiveFile, compareDatesAscending, getWeekNameFromDate
 import { SUBSECTION_PREFIX } from './Constants';
 import { buildDreamEntry, buildDreamEntryTitle, buildPath, getDateFromISO, getYearFromISO } from './utils/stringUtils';
 
-interface TimeEntryTurnerSettings {
+interface AlloyMindSettings {
     dailyNoteFolder: string;
     dreamJournalFolder: string;
     dreamSection: string;
 }
 
-const DEFAULT_SETTINGS: TimeEntryTurnerSettings = {
+const DEFAULT_SETTINGS: AlloyMindSettings = {
     dailyNoteFolder: 'Daily Notes',
     dreamJournalFolder: 'Dream Journal',
     dreamSection: '### Dream Journal'
 };
 
-export default class TimeEntryTurnerPlugin extends Plugin {
-    settings: TimeEntryTurnerSettings;
+export default class AlloyMindPlugin extends Plugin {
+    settings: AlloyMindSettings;
 
     async onload() {
         await this.loadSettings();
 
-        this.addSettingTab(new TimeEntryTurnerSettingTab(this.app, this));
+        this.addSettingTab(new AlloyMindSettingTab(this.app, this));
 
         this.addCommand({
             id: 'calculate-time',
             name: 'Calculate Time',
             callback: () => calculateTimeFromActiveFile(this.app)
-        });
-
-        this.addRibbonIcon('wand', 'Add up time entries', async () => {
-            await calculateTimeFromActiveFile(this.app);
         });
 
         this.addRibbonIcon('sync', 'Organize daily notes', async () => {
@@ -147,10 +143,10 @@ export default class TimeEntryTurnerPlugin extends Plugin {
     };
 }
 
-class TimeEntryTurnerSettingTab extends PluginSettingTab {
-    plugin: TimeEntryTurnerPlugin;
+class AlloyMindSettingTab extends PluginSettingTab {
+    plugin: AlloyMindPlugin;
 
-    constructor(app: App, plugin: TimeEntryTurnerPlugin) {
+    constructor(app: App, plugin: AlloyMindPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }
@@ -158,7 +154,7 @@ class TimeEntryTurnerSettingTab extends PluginSettingTab {
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl('h2', { text: 'Settings for Time Entry Turner' });
+        containerEl.createEl('h2', { text: 'Settings for Alloy Mind' });
         new Setting(containerEl)
             .setName('Daily Note Folder')
             .setDesc(

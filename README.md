@@ -9,8 +9,6 @@ Current features:
 2. Copy daily notes' dream journal entries into a yearly dream journal note
 3. Add up time entries for a given daily note (This is a holdover from my time using the app as a consultant)
 
-![Alloy Mind](resources/images/alloy-mind.jpg)
-
 ## Installation
 
 1. Move the downloaded release zip file into `../YOUR_VAULT/.obsidian/plugins`

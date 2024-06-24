@@ -5,7 +5,7 @@ if [[ -z "${OBSIDIAN}" ]]; then
     export OBSIDIAN=$obsidian
 else
     echo "Current vault path: ${OBSIDIAN}"
-    read -p "Would you like to use the current vault ${OBSIDIAN} (Y/N):" use_current_vault
+    read -p "Would you like to use the current vault ${OBSIDIAN} (y/n): " use_current_vault
 
     if [[ "${use_current_vault}" == [Nn] ]]; then
         read -p "Enter vault path: " obsidian

@@ -1,9 +1,9 @@
-import { App, Notice, TFile } from 'obsidian';
+import { Notice, TFile, Vault, Workspace } from 'obsidian';
 
 export class NoActiveFileError extends Error {}
 
-export const getActiveFile = (app: App): TFile => {
-    const activeFile = app.workspace.getActiveFile();
+export const getActiveFile = (workspace: Workspace): TFile => {
+    const activeFile = workspace.getActiveFile();
     if (!activeFile) {
         throw new NoActiveFileError();
     }
@@ -11,9 +11,9 @@ export const getActiveFile = (app: App): TFile => {
     return activeFile;
 };
 
-export const getLinesFromFile = async (file: TFile, app: App): Promise<string[]> => {
+export const getLinesFromFile = async (file: TFile, vault: Vault): Promise<string[]> => {
     try {
-        const fileStr = await app.vault.read(file);
+        const fileStr = await vault.read(file);
         return fileStr.split('\n');
     } catch (error) {
         console.error(error);
@@ -34,16 +34,16 @@ export const buildDreamSectionFilter = (startIdx: number, endIdx: number) => {
     };
 };
 
-export const createFolderIfNonExistent = async (folder: string, app: App): Promise<void> => {
-    const folderExists = await app.vault.adapter.exists(folder);
+export const createFolderIfNonExistent = async (folder: string, vault: Vault): Promise<void> => {
+    const folderExists = await vault.adapter.exists(folder);
     if (folderExists) return;
 
-    await app.vault.createFolder(folder);
+    await vault.createFolder(folder);
 };
 
-export const createFileIfNonExistent = async (filePath: string, app: App): Promise<void> => {
-    const fileExists = await app.vault.adapter.exists(filePath);
+export const createFileIfNonExistent = async (filePath: string, vault: Vault): Promise<void> => {
+    const fileExists = await vault.adapter.exists(filePath);
     if (fileExists) return;
 
-    await app.vault.create(filePath, '');
+    await vault.create(filePath, '');
 };

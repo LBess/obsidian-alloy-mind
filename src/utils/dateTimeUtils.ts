@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { App, Notice, TFile } from 'obsidian';
-import { getActiveFile, getLinesFromFile, NoActiveFileError } from './obsidianUtils';
-import { getMonthAndDayFromISO } from './stringUtils';
+import { getActiveFile, getLinesFromFile, NoActiveFileError } from 'utils/obsidianUtils';
+import { getMonthAndDayFromISO } from 'utils/stringUtils';
 
 interface TimeEntry {
     start: string;
@@ -11,8 +11,8 @@ interface TimeEntry {
 export const calculateTimeFromActiveFile = async (app: App) => {
     let fileLines: string[] = [];
     try {
-        const activeFile = getActiveFile(app);
-        fileLines = await getLinesFromFile(activeFile, app);
+        const activeFile = getActiveFile(app.workspace);
+        fileLines = await getLinesFromFile(activeFile, app.vault);
     } catch (error) {
         console.warn(error);
         if (error instanceof NoActiveFileError) {

@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import AlloyMindPlugin from './main';
+import AlloyMindPlugin from 'main';
 
 export class AlloyMindSettingTab extends PluginSettingTab {
     plugin: AlloyMindPlugin;

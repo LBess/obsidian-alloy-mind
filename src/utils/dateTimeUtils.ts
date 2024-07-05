@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { App, Notice, TFile } from 'obsidian';
-import { getActiveFile, getLinesFromFile, NoActiveFileError } from './obsidianUtils';
-import { getMonthAndDayFromISO } from './stringUtils';
+import { getActiveFile, getLinesFromFile, NoActiveFileError } from 'utils/obsidianUtils';
+import { getMonthAndDayFromISO } from 'utils/stringUtils';
 
 interface TimeEntry {
     start: string;

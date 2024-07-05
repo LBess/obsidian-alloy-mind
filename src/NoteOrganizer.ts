@@ -1,15 +1,15 @@
 import { DateTime } from 'luxon';
 import { Vault, Notice, TFile } from 'obsidian';
-import { SUBSECTION_PREFIX } from './Constants';
-import { AlloyMindSettings } from './main';
-import { compareDatesAscending, getWeekNameFromDate } from './utils/dateTimeUtils';
+import { SUBSECTION_PREFIX } from 'Constants';
+import { AlloyMindSettings } from 'main';
+import { compareDatesAscending, getWeekNameFromDate } from 'utils/dateTimeUtils';
 import {
     buildDreamSectionFilter,
     createFileIfNonExistent,
     createFolderIfNonExistent,
     getLinesFromFile
 } from './utils/obsidianUtils';
-import { buildDreamEntry, buildDreamEntryTitle, buildPath, getDateFromISO, getYearFromISO } from './utils/stringUtils';
+import { buildDreamEntry, buildDreamEntryTitle, buildDreamJournalName, buildPath, getDateFromISO, getYearFromISO } from './utils/stringUtils';
 
 export class NoteOrganizer {
     private vault: Vault;
@@ -62,7 +62,7 @@ export class NoteOrganizer {
         try {
             await createFolderIfNonExistent(this.settings.dreamJournalFolder, this.vault);
 
-            const dreamJournalName = `${year} Dreams`;
+            const dreamJournalName = buildDreamJournalName(year);
             const dreamJournalPath = buildPath(this.settings.dreamJournalFolder, dreamJournalName, '.md');
             await createFileIfNonExistent(dreamJournalPath, this.vault);
             const dreamJournalFile = this.vault.getAbstractFileByPath(dreamJournalPath) as TFile;

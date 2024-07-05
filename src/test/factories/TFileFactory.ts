@@ -1,5 +1,5 @@
 import { TFile } from 'obsidian';
-import { VaultFactory } from './VaultFactory';
+import { VaultFactory } from 'test/factories/VaultFactory';
 
 export class TFileFactory {
     static create(file?: Partial<TFile>): TFile {

@@ -1,7 +1,7 @@
 import { Plugin, App } from 'obsidian';
-import { calculateTimeFromActiveFile } from './utils/dateTimeUtils';
-import { AlloyMindSettingTab } from './AlloyMindSettingTab';
-import { NoteOrganizer } from './NoteOrganizer';
+import { calculateTimeFromActiveFile } from 'utils/dateTimeUtils';
+import { AlloyMindSettingTab } from 'AlloyMindSettingTab';
+import { NoteOrganizer } from 'NoteOrganizer';
 
 export interface AlloyMindSettings {
     dailyNoteFolder: string;

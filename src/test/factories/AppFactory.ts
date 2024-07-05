@@ -1,6 +1,6 @@
 import { App } from 'obsidian';
-import { WorkspaceFactory } from './WorkspaceFactory';
-import { VaultFactory } from './VaultFactory';
+import { WorkspaceFactory } from 'test/factories/WorkspaceFactory';
+import { VaultFactory } from 'test/factories/VaultFactory';
 
 export class AppFactory {
     static create(app?: Partial<App>): App {

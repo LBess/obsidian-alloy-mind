@@ -8,8 +8,15 @@ import {
     createFileIfNonExistent,
     createFolderIfNonExistent,
     getLinesFromFile
-} from './utils/obsidianUtils';
-import { buildDreamEntry, buildDreamEntryTitle, buildDreamJournalName, buildPath, getDateFromISO, getYearFromISO } from './utils/stringUtils';
+} from 'utils/obsidianUtils';
+import {
+    buildDreamEntry,
+    buildDreamEntryTitle,
+    buildDreamJournalName,
+    buildPath,
+    getDateFromISO,
+    getYearFromISO
+} from 'utils/stringUtils';
 
 export class NoteOrganizer {
     private vault: Vault;

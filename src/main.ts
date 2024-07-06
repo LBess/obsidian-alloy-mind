@@ -1,4 +1,4 @@
-import { Plugin, App } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { calculateTimeFromActiveFile } from 'utils/dateTimeUtils';
 import { AlloyMindSettingTab } from 'AlloyMindSettingTab';
 import { NoteOrganizer } from 'NoteOrganizer';

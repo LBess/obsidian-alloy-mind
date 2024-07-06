@@ -2,6 +2,8 @@
     "name": "obsidian-alloy-mind",
     "version": "1.0.0",
     "description": "A utility plugin for Obsidian",
+    "author": "Liam Bessell",
+    "license": "MIT",
     "main": "main.js",
     "scripts": {
         "dev": "node esbuild.config.mjs",
@@ -9,12 +11,10 @@
         "build:deploy": "bash scripts/buildDeploy.sh",
         "version": "node version-bump.mjs && git add manifest.json versions.json",
         "prepare": "husky install",
-        "lint": "eslint --cache --fix && prettier --write",
+        "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
         "test": "jest"
     },
     "keywords": [],
-    "author": "Liam Bessell",
-    "license": "MIT",
     "dependencies": {
         "luxon": "^3.2.1"
     },
@@ -43,8 +43,8 @@
     },
     "lint-staged": {
         "*.ts": [
-            "prettier --write",
-            "eslint"
+            "eslint --cache --fix",
+            "prettier --write --ignore-unknown"
         ]
     }
 }

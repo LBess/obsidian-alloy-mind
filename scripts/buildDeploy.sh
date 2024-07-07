@@ -21,6 +21,6 @@ fi
 
 cp main.js ${vault_plugin_path}
 cp manifest.json ${vault_plugin_path}
-cp resources/ ${vault_plugin_path}
+cp -r resources/ ${vault_plugin_path}
 
 echo "Deployed to ${vault_plugin_path}"

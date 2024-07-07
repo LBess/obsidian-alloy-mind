@@ -1,5 +1,5 @@
+import { Constants } from 'Constants';
 import { TFile } from 'obsidian';
-import { SUBSECTION_PREFIX } from 'Constants';
 
 export const buildDreamEntry = (title: string, lines: string[]) => {
     return `\n\n${title}\n${lines.join('\n')}`;
@@ -7,7 +7,7 @@ export const buildDreamEntry = (title: string, lines: string[]) => {
 
 export const buildDreamEntryTitle = (note: TFile) => {
     const date = getDateFromISO(note.basename);
-    return `${SUBSECTION_PREFIX} ${date}`;
+    return `${Constants.SUBSECTION_PREFIX} ${date}`;
 };
 
 export const buildDreamJournalName = (year: string) => `${year} Dreams`;

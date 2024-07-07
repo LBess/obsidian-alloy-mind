@@ -1,4 +1,5 @@
 import { Workspace, debounce } from 'obsidian';
+import { MarkdownFileInfoFactory } from 'test/factories/MarkdownFileInfoFactory';
 
 export class WorkspaceFactory {
     static create(workspace?: Partial<Workspace>): Workspace {
@@ -48,7 +49,7 @@ export class WorkspaceFactory {
             containerEl: workspace?.containerEl ?? htmlElement,
             layoutReady: workspace?.layoutReady ?? true,
             requestSaveLayout: workspace?.requestSaveLayout ?? debounce(jest.fn()),
-            activeEditor: workspace?.activeEditor ?? null,
+            activeEditor: workspace?.activeEditor ?? MarkdownFileInfoFactory.create(),
             onLayoutReady: workspace?.onLayoutReady ?? jest.fn(),
             changeLayout: workspace?.changeLayout ?? jest.fn(),
             getLayout: workspace?.getLayout ?? jest.fn(),
@@ -80,7 +81,7 @@ export class WorkspaceFactory {
             off: workspace?.off ?? jest.fn(),
             offref: workspace?.offref ?? jest.fn(),
             trigger: workspace?.trigger ?? jest.fn(),
-            tryTrigger: workspace?.tryTrigger ?? jest.fn(),
+            tryTrigger: workspace?.tryTrigger ?? jest.fn()
         };
     }
 }

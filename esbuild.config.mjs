@@ -15,7 +15,7 @@ esbuild.build({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ['src/main.ts'],
+	entryPoints: ['src/AlloyMindPlugin.ts'],
 	bundle: true,
 	external: [
 		'obsidian',
@@ -47,7 +47,7 @@ esbuild.build({
 		...builtins],
 	format: 'cjs',
 	watch: !prod,
-	target: 'es2016',
+	target: 'es2021',
 	logLevel: "info",
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,

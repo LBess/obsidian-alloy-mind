@@ -2,6 +2,7 @@ import { Plugin } from 'obsidian';
 import { calculateTimeFromActiveFile } from 'utils/dateTimeUtils';
 import { AlloyMindSettingTab } from 'AlloyMindSettingTab';
 import { NoteOrganizer } from 'NoteOrganizer';
+import { DictionaryDirector } from 'DictionaryDirector';
 
 export interface AlloyMindSettings {
     dailyNoteFolder: string;
@@ -29,6 +30,14 @@ export default class AlloyMindPlugin extends Plugin {
             callback: () => calculateTimeFromActiveFile(this.app)
         });
 
+        this.addCommand({
+            id: 'lookup-word',
+            name: ' Lookup Word',
+            callback: this.lookupSelection
+        });
+
+        this.addRibbonIcon('book-type', 'Lookup Word', this.lookupSelection);
+
         this.addRibbonIcon('sync', 'Organize daily notes', async () => {
             const noteOrganizer = new NoteOrganizer(this.app.vault, this.settings);
             const notes = await noteOrganizer.getUnorganizedNotes();
@@ -46,4 +55,15 @@ export default class AlloyMindPlugin extends Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
     }
+
+    lookupSelection = async () => {
+        const editor = this.app.workspace.activeEditor?.editor;
+        if (!editor) {
+            console.warn('No active editor');
+            return;
+        }
+
+        const director = new DictionaryDirector(editor);
+        await director.lookupSelection();
+    };
 }

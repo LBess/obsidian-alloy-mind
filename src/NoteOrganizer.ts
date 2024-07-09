@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon';
 import { Vault, Notice, TFile } from 'obsidian';
-import { SUBSECTION_PREFIX } from 'Constants';
-import { AlloyMindSettings } from 'main';
+import { AlloyMindSettings } from 'AlloyMindPlugin';
 import { compareDatesAscending, getWeekNameFromDate } from 'utils/dateTimeUtils';
 import {
     buildDreamSectionFilter,
@@ -17,6 +16,7 @@ import {
     getDateFromISO,
     getYearFromISO
 } from 'utils/stringUtils';
+import { Constants } from 'Constants';
 
 export class NoteOrganizer {
     private vault: Vault;
@@ -52,7 +52,7 @@ export class NoteOrganizer {
                 return false;
             }
 
-            return line.startsWith(SUBSECTION_PREFIX) || idx === fileLines.length - 1;
+            return line.startsWith(Constants.SUBSECTION_PREFIX) || idx === fileLines.length - 1;
         });
         if (dreamSectionEndIdx === -1) return;
 

@@ -1,6 +1,7 @@
 import { Constants } from 'Constants';
 import axios from 'axios';
 import { Editor, Notice } from 'obsidian';
+import { DictionaryLookupResponse } from 'types/DictionaryLookupResponse';
 
 export class DictionaryDirector {
     private editor: Editor;
@@ -12,13 +13,13 @@ export class DictionaryDirector {
     lookupSelection = async () => {
         const selection = this.editor.getSelection();
         if (!selection) {
-            console.warn('Selection is null');
+            console.error('Selection is null');
             return;
         }
 
         const url = `${Constants.DICTIONARY_API_URL}${selection}`;
         try {
-            const { data } = await axios.get(url);
+            const { data } = await axios.get<DictionaryLookupResponse[]>(url);
             if (!data || data.length === 0) {
                 throw new Error('No data returned');
             }
@@ -35,7 +36,7 @@ export class DictionaryDirector {
 
             const definitionText = definition.definition.toLowerCase();
 
-            navigator.clipboard?.writeText(definitionText);
+            navigator.clipboard.writeText(definitionText);
             new Notice(`${selection}: ${definitionText}`, 5000);
         } catch (error) {
             console.error(error);

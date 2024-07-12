@@ -25,9 +25,9 @@
         "@testing-library/jest-dom": "^6.4.6",
         "@types/jest": "^29.5.12",
         "@types/luxon": "^3.2.0",
-        "@types/node": "^16.11.6",
-        "@typescript-eslint/eslint-plugin": "5.29.0",
-        "@typescript-eslint/parser": "5.29.0",
+        "@types/node": "^16.14.0",
+        "@typescript-eslint/eslint-plugin": "^5.29.0",
+        "@typescript-eslint/parser": "^5.29.0",
         "babel-jest": "^29.7.0",
         "builtin-modules": "3.3.0",
         "esbuild": "0.14.47",
@@ -39,7 +39,7 @@
         "obsidian": "^1.5.7-1",
         "prettier": "^2.8.4",
         "tslib": "2.4.0",
-        "typescript": "4.7.4"
+        "typescript": "^4.7.4"
     },
     "lint-staged": {
         "*.ts": [
@@ -60,18 +60,26 @@
     "jest": {
         "testEnvironment": "jsdom",
         "restoreMocks": true,
-        "roots": ["src"],
+        "roots": [
+            "src"
+        ],
         "moduleDirectories": [
             "node_modules",
             "src"
         ],
-        "moduleFileExtensions": ["ts", "js"],
+        "moduleFileExtensions": [
+            "ts",
+            "js"
+        ],
         "moduleNameMapper": {
             "^obsidian$": "<rootDir>/src/test/mocks/mockObsidian.ts"
         }
     },
     "babel": {
-        "presets": ["@babel/preset-env", "@babel/preset-typescript"]
+        "presets": [
+            "@babel/preset-env",
+            "@babel/preset-typescript"
+        ]
     },
     "prettier": {
         "singleQuote": true,

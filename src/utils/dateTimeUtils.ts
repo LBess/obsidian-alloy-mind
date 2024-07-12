@@ -50,13 +50,12 @@ export const getWeekNameFromDate = (dateStr: string): string => {
         throw Error(`${dateStr} is not a valid date string`);
     }
     // Note that weeks start on Mondays
-    const startOfWeek = date.startOf('week');
-    const endOfWeek = date.endOf('week');
+    const year = date.startOf('week').year;
+    const startOfWeek = date.startOf('week').toISO() ?? '';
+    const endOfWeek = date.endOf('week').toISO() ?? '';
 
     // YYYY MM-DD thru MM-DD
-    const weekName = `${startOfWeek.year} ${getMonthAndDayFromISO(startOfWeek.toISO())} thru ${getMonthAndDayFromISO(
-        endOfWeek.toISO()
-    )}`;
+    const weekName = `${year} ${getMonthAndDayFromISO(startOfWeek)} thru ${getMonthAndDayFromISO(endOfWeek)}`;
     return weekName;
 };
 

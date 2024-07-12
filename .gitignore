@@ -24,4 +24,5 @@ releases/
 .idea
 
 .eslintcache
+coverage/
 

@@ -3,7 +3,13 @@ import { NoteOrganizer } from 'NoteOrganizer';
 import { AlloyMindSettingsFactory } from 'test/factories/AlloyMindSettingsFactory';
 import { TFileFactory } from 'test/factories/TFileFactory';
 import { VaultFactory } from 'test/factories/VaultFactory';
-import { buildDreamEntry, buildDreamEntryTitle, buildDreamJournalName, buildPath, getDateFromISO } from 'utils/stringUtils';
+import {
+    buildDreamEntry,
+    buildDreamEntryTitle,
+    buildDreamJournalName,
+    buildPath,
+    getDateFromISO
+} from 'utils/stringUtils';
 import { TFolderFactory } from 'test/factories/TFolderFactory';
 import { mockObsidianUtils } from 'test/mocks/mockObsidianUtils';
 
@@ -12,10 +18,10 @@ describe('NoteOrganizer', () => {
     const settings = AlloyMindSettingsFactory.create({ dailyNoteFolder: dailyNoteFolderName });
 
     it('returns the correct number of notes when getUnorganizedNotes is called', async () => {
-        const dailyNoteFolder = TFolderFactory.create({ path: dailyNoteFolderName })
+        const dailyNoteFolder = TFolderFactory.create({ path: dailyNoteFolderName });
         const markdownFiles = [
             TFileFactory.create({ basename: '2024-03-12', parent: dailyNoteFolder }),
-            TFileFactory.create({ basename: '2024-06-23', parent: dailyNoteFolder }),
+            TFileFactory.create({ basename: '2024-06-23', parent: dailyNoteFolder })
         ];
         const getMarkdownFiles = jest.fn().mockReturnValue(markdownFiles);
         const vault = VaultFactory.create({ getMarkdownFiles });
@@ -27,11 +33,9 @@ describe('NoteOrganizer', () => {
     });
 
     it("does not return today's note when getUnorganizedNotes is called", async () => {
-        const dailyNoteFolder = TFolderFactory.create({ path: dailyNoteFolderName })
+        const dailyNoteFolder = TFolderFactory.create({ path: dailyNoteFolderName });
         const today = getDateFromISO(DateTime.now().toISO());
-        const markdownFiles = [
-            TFileFactory.create({ basename: today, parent: dailyNoteFolder }),
-        ];
+        const markdownFiles = [TFileFactory.create({ basename: today, parent: dailyNoteFolder })];
         const getMarkdownFiles = jest.fn().mockReturnValue(markdownFiles);
         const vault = VaultFactory.create({ getMarkdownFiles });
 
@@ -42,9 +46,7 @@ describe('NoteOrganizer', () => {
     });
 
     it('does not return notes not in the daily not root folder', async () => {
-        const markdownFiles = [
-            TFileFactory.create({ basename: '2024-06-24' }),
-        ];
+        const markdownFiles = [TFileFactory.create({ basename: '2024-06-24' })];
         const getMarkdownFiles = jest.fn().mockReturnValue(markdownFiles);
         const vault = VaultFactory.create({ getMarkdownFiles });
 
@@ -77,7 +79,7 @@ describe('NoteOrganizer', () => {
 
     it('does not call vault.adapter.append when copyDreamsToJournal is called and there is no dream section', async () => {
         const note = TFileFactory.create({ basename: '2024-06-24' });
-        const noteLines = [ note.basename ];
+        const noteLines = [note.basename];
 
         const getLinesFromFile = jest.fn().mockReturnValue(noteLines);
         mockObsidianUtils({ getLinesFromFile });
@@ -91,7 +93,7 @@ describe('NoteOrganizer', () => {
 
     it('does not call vault.adapter.append when copyDreamsToJournal is called and there is a dream section but it is empty', async () => {
         const note = TFileFactory.create({ basename: '2024-06-24' });
-        const noteLines = [ note.basename, settings.dreamSection ];
+        const noteLines = [note.basename, settings.dreamSection];
 
         const getLinesFromFile = jest.fn().mockReturnValue(noteLines);
         mockObsidianUtils({ getLinesFromFile });
@@ -109,7 +111,7 @@ describe('NoteOrganizer', () => {
 
         const notes = [
             TFileFactory.create({ basename: '2024-06-23' }),
-            TFileFactory.create({ basename: '2024-06-24' }),
+            TFileFactory.create({ basename: '2024-06-24' })
         ];
 
         const noteOrganizer = new NoteOrganizer(vault, settings);
@@ -118,7 +120,7 @@ describe('NoteOrganizer', () => {
         expect(rename).toHaveBeenCalledTimes(notes.length);
     });
 
-    it('does not call vault.rename once if there are no notes passed in to moveNotesToWeekFolder', async () => {
+    it('does not call vault.rename if there are no notes passed in to moveNotesToWeekFolder', async () => {
         const rename = jest.fn();
         const vault = VaultFactory.create({ rename });
 
@@ -127,5 +129,4 @@ describe('NoteOrganizer', () => {
 
         expect(rename).not.toHaveBeenCalled();
     });
-
 });

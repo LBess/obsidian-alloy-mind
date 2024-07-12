@@ -9,9 +9,8 @@
         "dev": "node esbuild.config.mjs",
         "build": "bash scripts/build.sh",
         "build:deploy": "bash scripts/buildDeploy.sh",
-        "version": "node version-bump.mjs && git add manifest.json versions.json",
         "prepare": "husky install",
-        "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+        "lint": "eslint . --ext .ts --max-warnings 0",
         "test": "jest"
     },
     "keywords": [],
@@ -47,5 +46,40 @@
             "eslint --cache --fix",
             "prettier --write --ignore-unknown"
         ]
+    },
+    "eslintConfig": {
+        "extends": [
+            "eslint:recommended",
+            "plugin:@typescript-eslint/eslint-recommended",
+            "plugin:@typescript-eslint/recommended"
+        ],
+        "rules": {
+            "@typescript-eslint/no-empty-function": "off"
+        }
+    },
+    "jest": {
+        "testEnvironment": "jsdom",
+        "restoreMocks": true,
+        "roots": ["src"],
+        "moduleDirectories": [
+            "node_modules",
+            "src"
+        ],
+        "moduleFileExtensions": ["ts", "js"],
+        "moduleNameMapper": {
+            "^obsidian$": "<rootDir>/src/test/mocks/mockObsidian.ts"
+        }
+    },
+    "babel": {
+        "presets": ["@babel/preset-env", "@babel/preset-typescript"]
+    },
+    "prettier": {
+        "singleQuote": true,
+        "arrowParens": "always",
+        "semi": true,
+        "trailingComma": "none",
+        "printWidth": 120,
+        "useTabs": false,
+        "tabWidth": 4
     }
 }

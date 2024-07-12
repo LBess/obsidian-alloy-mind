@@ -59,7 +59,7 @@ export default class AlloyMindPlugin extends Plugin {
     lookupSelection = async () => {
         const editor = this.app.workspace.activeEditor?.editor;
         if (!editor) {
-            console.warn('No active editor');
+            console.error('No active editor');
             return;
         }
 

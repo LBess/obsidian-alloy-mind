@@ -18,13 +18,14 @@ describe('NoteOrganizer', () => {
     const settings = AlloyMindSettingsFactory.create({ dailyNoteFolder: dailyNoteFolderName });
 
     it('returns the correct number of notes when getUnorganizedNotes is called', async () => {
-        const dailyNoteFolder = TFolderFactory.create({ path: dailyNoteFolderName });
         const markdownFiles = [
-            TFileFactory.create({ basename: '2024-03-12', parent: dailyNoteFolder }),
-            TFileFactory.create({ basename: '2024-06-23', parent: dailyNoteFolder })
+            TFileFactory.create({ basename: '2024-03-12' }),
+            TFileFactory.create({ basename: '2024-06-23' })
         ];
-        const getMarkdownFiles = jest.fn().mockReturnValue(markdownFiles);
-        const vault = VaultFactory.create({ getMarkdownFiles });
+        const dailyNoteFolder = TFolderFactory.create({ path: dailyNoteFolderName, children: markdownFiles });
+        const getFolderByPath = jest.fn().mockReturnValue(dailyNoteFolder);
+        const vault = VaultFactory.create({ getFolderByPath });
+        mockObsidianUtils();
 
         const noteOrganizer = new NoteOrganizer(vault, settings);
         const unorganizedNotes = await noteOrganizer.getUnorganizedNotes();
@@ -33,22 +34,12 @@ describe('NoteOrganizer', () => {
     });
 
     it("does not return today's note when getUnorganizedNotes is called", async () => {
-        const dailyNoteFolder = TFolderFactory.create({ path: dailyNoteFolderName });
         const today = getDateFromISO(DateTime.now().toISO());
-        const markdownFiles = [TFileFactory.create({ basename: today, parent: dailyNoteFolder })];
-        const getMarkdownFiles = jest.fn().mockReturnValue(markdownFiles);
-        const vault = VaultFactory.create({ getMarkdownFiles });
-
-        const noteOrganizer = new NoteOrganizer(vault, settings);
-        const unorganizedNotes = await noteOrganizer.getUnorganizedNotes();
-
-        expect(unorganizedNotes).toHaveLength(0);
-    });
-
-    it('does not return notes not in the daily not root folder', async () => {
-        const markdownFiles = [TFileFactory.create({ basename: '2024-06-24' })];
-        const getMarkdownFiles = jest.fn().mockReturnValue(markdownFiles);
-        const vault = VaultFactory.create({ getMarkdownFiles });
+        const markdownFiles = [TFileFactory.create({ basename: today })];
+        const dailyNoteFolder = TFolderFactory.create({ path: dailyNoteFolderName, children: markdownFiles });
+        const getFolderByPath = jest.fn().mockReturnValue(dailyNoteFolder);
+        const vault = VaultFactory.create({ getFolderByPath });
+        mockObsidianUtils();
 
         const noteOrganizer = new NoteOrganizer(vault, settings);
         const unorganizedNotes = await noteOrganizer.getUnorganizedNotes();

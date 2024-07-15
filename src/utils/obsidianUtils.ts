@@ -1,4 +1,4 @@
-import { Notice, TFile, Vault, Workspace } from 'obsidian';
+import { Notice, TAbstractFile, TFile, Vault, Workspace } from 'obsidian';
 
 export class NoActiveFileError extends Error {}
 
@@ -47,3 +47,5 @@ export const createFileIfNonExistent = async (filePath: string, vault: Vault): P
 
     await vault.create(filePath, '');
 };
+
+export const isNote = (abstractFile: TAbstractFile) => abstractFile instanceof TFile;

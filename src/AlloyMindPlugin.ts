@@ -32,7 +32,7 @@ export default class AlloyMindPlugin extends Plugin {
 
         this.addCommand({
             id: 'lookup-word',
-            name: ' Lookup Word',
+            name: 'Lookup Word',
             callback: this.lookupSelection
         });
 
@@ -41,6 +41,8 @@ export default class AlloyMindPlugin extends Plugin {
         this.addRibbonIcon('sync', 'Organize daily notes', async () => {
             const noteOrganizer = new NoteOrganizer(this.app.vault, this.settings);
             const notes = await noteOrganizer.getUnorganizedNotes();
+            if (notes.length === 0) return;
+
             for (const note of notes) {
                 await noteOrganizer.copyDreamsToJournal(note);
             }

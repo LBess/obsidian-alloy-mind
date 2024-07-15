@@ -6,7 +6,8 @@ import {
     buildDreamSectionFilter,
     createFileIfNonExistent,
     createFolderIfNonExistent,
-    getLinesFromFile
+    getLinesFromFile,
+    isNote
 } from 'utils/obsidianUtils';
 import {
     buildDreamEntry,
@@ -28,17 +29,16 @@ export class NoteOrganizer {
     }
 
     getUnorganizedNotes = async () => {
+        const dailyNoteFolder = this.vault.getFolderByPath(this.settings.dailyNoteFolder);
+        if (dailyNoteFolder === null) {
+            console.error('No daily note folder');
+            return [];
+        }
+
+        const notes = dailyNoteFolder.children.filter(isNote) as TFile[];
+
         const today = getDateFromISO(DateTime.now().toISO());
-
-        const notes = this.vault.getMarkdownFiles();
-        const unorganizedNotes = notes.filter((note) => {
-            if (note.basename === today) return false;
-
-            const isInDailyNoteRootFolder = note.parent?.path === this.settings.dailyNoteFolder;
-            return isInDailyNoteRootFolder;
-        });
-
-        return unorganizedNotes.sort(compareDatesAscending);
+        return notes.filter((note) => note.basename !== today).sort(compareDatesAscending);
     };
 
     copyDreamsToJournal = async (note: TFile) => {

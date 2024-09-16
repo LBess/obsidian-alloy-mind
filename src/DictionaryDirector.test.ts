@@ -1,4 +1,4 @@
-import { Constants } from 'Constants';
+import { Constants } from 'utils/Constants';
 import { DictionaryDirector } from 'DictionaryDirector';
 import { EditorFactory } from 'test/factories/EditorFactory';
 import { mockAxios } from 'test/mocks/mockAxios';

@@ -1,5 +1,8 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import AlloyMindPlugin from 'AlloyMindPlugin';
+import { strings } from 'strings/strings';
+
+const settingsStrings = strings.settings;
 
 export class AlloyMindSettingTab extends PluginSettingTab {
     plugin: AlloyMindPlugin;
@@ -12,15 +15,13 @@ export class AlloyMindSettingTab extends PluginSettingTab {
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl('h2', { text: 'Settings for Alloy Mind' });
+        containerEl.createEl('h2', { text: settingsStrings.title });
         new Setting(containerEl)
-            .setName('Daily Note Folder')
-            .setDesc(
-                'The root folder for your daily notes. e.g. If it is a folder called "Daily Notes", then this setting should be "Daily Notes" no quotations.'
-            )
+            .setName(settingsStrings.dailyNote.name)
+            .setDesc(settingsStrings.dailyNote.description)
             .addText((text) =>
                 text
-                    .setPlaceholder('Enter the Folder')
+                    .setPlaceholder(settingsStrings.dailyNote.placeHolder)
                     .setValue(this.plugin.settings.dailyNoteFolder)
                     .onChange(async (folder) => {
                         this.plugin.settings.dailyNoteFolder = folder;
@@ -28,20 +29,18 @@ export class AlloyMindSettingTab extends PluginSettingTab {
                     })
             );
         new Setting(containerEl)
-            .setName('Dream Journal Folder')
-            .setDesc('The root folder for your yearly dream journals.')
+            .setName(settingsStrings.dreamJournal.name)
+            .setDesc(settingsStrings.dreamJournal.description)
             .addText((text) =>
                 text
-                    .setPlaceholder('Enter the Folder')
+                    .setPlaceholder(settingsStrings.dreamJournal.placeHolder)
                     .setValue(this.plugin.settings.dreamJournalFolder)
                     .onChange(async (folder) => {
                         this.plugin.settings.dreamJournalFolder = folder;
                         this.plugin.saveSettings();
                     })
             );
-        containerEl.createEl('h2', { text: 'Description' });
-        containerEl.createEl('p', {
-            text: 'This is a custom Obsidian plugin I created to help with my usage of the app.'
-        });
+        containerEl.createEl('h2', { text: settingsStrings.description.title });
+        containerEl.createEl('p', { text: settingsStrings.description.body });
     }
 }

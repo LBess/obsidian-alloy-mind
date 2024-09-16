@@ -1,7 +1,10 @@
-import { Constants } from 'Constants';
+import { Constants } from 'utils/Constants';
 import axios from 'axios';
 import { Editor, Notice } from 'obsidian';
+import { strings } from 'strings/strings';
 import { DictionaryLookupResponse } from 'types/DictionaryLookupResponse';
+
+const notices = strings.notices.lookupWord;
 
 export class DictionaryDirector {
     private editor: Editor;
@@ -17,29 +20,33 @@ export class DictionaryDirector {
             return;
         }
 
-        const url = `${Constants.DICTIONARY_API_URL}${selection}`;
+        const url = buildDictionaryLookupUrl(selection);
         try {
             const { data } = await axios.get<DictionaryLookupResponse[]>(url);
             if (!data || data.length === 0) {
-                throw new Error('No data returned');
+                throw new Error(notices.noData);
             }
 
             const [meaning] = data[0].meanings;
             if (!meaning) {
-                throw new Error('No meaning returned');
+                throw new Error(notices.noMeaning);
             }
 
             const [definition] = meaning.definitions;
             if (!definition) {
-                throw new Error('No definition returned');
+                throw new Error(notices.noDefinition);
             }
 
             const definitionText = definition.definition.toLowerCase();
 
             navigator.clipboard.writeText(definitionText);
-            new Notice(`${selection}: ${definitionText}`, 5000);
+
+            const noticeString = strings.formatString(notices.definition, selection, definitionText) as string;
+            new Notice(noticeString, Constants.DICTIONARY_NOTICE_LENGTH);
         } catch (error) {
             console.error(error);
         }
     };
 }
+
+const buildDictionaryLookupUrl = (word: string) => `${Constants.DICTIONARY_API_URL}${word}`;

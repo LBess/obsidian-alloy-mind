@@ -1,6 +1,12 @@
 import { Notice, TAbstractFile, TFile, Vault, Workspace } from 'obsidian';
+import { strings } from 'strings/strings';
 
-export class NoActiveFileError extends Error {}
+export class NoActiveFileError extends Error {
+    constructor() {
+        super();
+        this.message = strings.notices.noActiveFile;
+    }
+}
 
 export const getActiveFile = (workspace: Workspace): TFile => {
     const activeFile = workspace.getActiveFile();
@@ -18,7 +24,7 @@ export const getLinesFromFile = async (file: TFile, vault: Vault): Promise<strin
     } catch (error) {
         console.error(error);
         if (error instanceof NoActiveFileError) {
-            new Notice('No active file');
+            new Notice(error.message);
         }
         return [];
     }

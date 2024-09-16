@@ -16,7 +16,7 @@ export const calculateTimeFromActiveFile = async (app: App) => {
     } catch (error) {
         console.warn(error);
         if (error instanceof NoActiveFileError) {
-            new Notice('No active file');
+            new Notice(error.message);
         }
         return;
     }

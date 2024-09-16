@@ -3,18 +3,16 @@ import { calculateTimeFromActiveFile } from 'utils/dateTimeUtils';
 import { AlloyMindSettingTab } from 'AlloyMindSettingTab';
 import { NoteOrganizer } from 'NoteOrganizer';
 import { DictionaryDirector } from 'DictionaryDirector';
-
-export interface AlloyMindSettings {
-    dailyNoteFolder: string;
-    dreamJournalFolder: string;
-    dreamSection: string;
-}
+import { AlloyMindSettings } from 'types/AlloyMindSettings';
+import { strings } from 'strings/strings';
 
 const DEFAULT_SETTINGS: AlloyMindSettings = {
     dailyNoteFolder: 'Daily Notes',
     dreamJournalFolder: 'Dream Journal',
     dreamSection: '### Dream Journal'
 };
+
+const commandStrings = strings.commands;
 
 export default class AlloyMindPlugin extends Plugin {
     settings: AlloyMindSettings;
@@ -26,19 +24,19 @@ export default class AlloyMindPlugin extends Plugin {
 
         this.addCommand({
             id: 'calculate-time',
-            name: 'Calculate Time',
+            name: commandStrings.calculateTime,
             callback: () => calculateTimeFromActiveFile(this.app)
         });
 
         this.addCommand({
             id: 'lookup-word',
-            name: 'Lookup Word',
+            name: commandStrings.lookupWord,
             callback: this.lookupSelection
         });
 
-        this.addRibbonIcon('book-type', 'Lookup Word', this.lookupSelection);
+        this.addRibbonIcon('book-type', commandStrings.lookupWord, this.lookupSelection);
 
-        this.addRibbonIcon('sync', 'Organize daily notes', async () => {
+        this.addRibbonIcon('sync', commandStrings.organizeNotes, async () => {
             const noteOrganizer = new NoteOrganizer(this.app.vault, this.settings);
             const notes = await noteOrganizer.getUnorganizedNotes();
             if (notes.length === 0) return;

@@ -1,4 +1,4 @@
-import { Plugin } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import { calculateTimeFromActiveFile } from 'utils/dateTimeUtils';
 import { AlloyMindSettingTab } from 'AlloyMindSettingTab';
 import { NoteOrganizer } from 'NoteOrganizer';
@@ -6,8 +6,12 @@ import { DictionaryDirector } from 'DictionaryDirector';
 import { AlloyMindSettings } from 'types/AlloyMindSettings';
 import { strings } from 'strings/strings';
 import { DEFAULT_SETTINGS } from 'utils/DefaultSettings';
+import { Constants } from 'utils/Constants';
+import { RibbonIcon } from 'utils/RibbonIcon';
+import { CommandID } from 'utils/CommandID';
 
 const commandStrings = strings.commands;
+const noticeStrings = strings.notices.lookupWord;
 
 export default class AlloyMindPlugin extends Plugin {
     settings: AlloyMindSettings;
@@ -18,20 +22,20 @@ export default class AlloyMindPlugin extends Plugin {
         this.addSettingTab(new AlloyMindSettingTab(this.app, this));
 
         this.addCommand({
-            id: 'calculate-time',
+            id: CommandID.CALCULATE_TIME,
             name: commandStrings.calculateTime,
             callback: () => calculateTimeFromActiveFile(this.app)
         });
 
         this.addCommand({
-            id: 'lookup-word',
+            id: CommandID.LOOKUP_WORD,
             name: commandStrings.lookupWord,
-            callback: this.lookupSelection
+            callback: this.lookupWord
         });
 
-        this.addRibbonIcon('book-type', commandStrings.lookupWord, this.lookupSelection);
+        this.addRibbonIcon(RibbonIcon.LOOKUP_WORD, commandStrings.lookupWord, this.lookupWord);
 
-        this.addRibbonIcon('sync', commandStrings.organizeNotes, async () => {
+        this.addRibbonIcon(RibbonIcon.ORGANIZE_NOTES, commandStrings.organizeNotes, async () => {
             const noteOrganizer = new NoteOrganizer(this.app.vault, this.settings);
             const notes = await noteOrganizer.getUnorganizedNotes();
             if (notes.length === 0) return;
@@ -51,14 +55,30 @@ export default class AlloyMindPlugin extends Plugin {
         await this.saveData(this.settings);
     }
 
-    lookupSelection = async () => {
+    lookupWord = async () => {
         const editor = this.app.workspace.activeEditor?.editor;
         if (!editor) {
-            console.error('No active editor');
+            new Notice(noticeStrings.noEditor);
             return;
         }
 
-        const director = new DictionaryDirector(editor);
-        await director.lookupWord();
+        const selection = editor.getSelection();
+        if (!selection) {
+            new Notice(noticeStrings.noSelection);
+            return;
+        }
+
+        const [word] = selection.split(' ');
+        if (!word) {
+            new Notice(noticeStrings.noWord);
+            return;
+        }
+
+        const director = new DictionaryDirector();
+        const definition = await director.getDefinition(word);
+        if (!definition) return;
+
+        const noticeString = strings.formatString(noticeStrings.definition, word, definition) as string;
+        new Notice(noticeString, Constants.DEFINITION_NOTICE_LENGTH);
     };
 }

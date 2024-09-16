@@ -1,53 +1,57 @@
 import { Constants } from 'utils/Constants';
-import axios from 'axios';
-import { Editor, Notice } from 'obsidian';
+import axios, { AxiosError, HttpStatusCode } from 'axios';
 import { strings } from 'strings/strings';
-import { DictionaryLookupResponse } from 'types/DictionaryLookupResponse';
+import { GetDefinitionResponseData } from 'types/DictionaryLookupResponse';
+import { Notice } from 'obsidian';
 
 const notices = strings.notices.lookupWord;
 
+class NoticeError extends Error {}
+
 /**
- * Documentation: https://dictionaryapi.dev/
+ * API Documentation: https://dictionaryapi.dev/
  */
 export class DictionaryDirector {
-    private editor: Editor;
-
-    constructor(editor: Editor) {
-        this.editor = editor;
-    }
-
-    lookupWord = async () => {
-        const word = this.editor.getSelection();
-        if (!word) {
-            console.error('Word is null');
-            return;
-        }
-
+    /**
+     * Returns the definition for the word and writes
+     * it to the clipboard.
+     *
+     * @param word
+     */
+    getDefinition = async (word: string) => {
         const url = buildDictionaryLookupUrl(word);
+
         try {
-            const { data } = await axios.get<DictionaryLookupResponse[]>(url);
+            const { data } = await axios.get<GetDefinitionResponseData>(url);
             if (!data || data.length === 0) {
-                throw new Error(notices.noData);
+                throw new NoticeError(notices.noData);
             }
 
-            const [meaning] = data[0].meanings;
+            const [response] = data;
+            const [meaning] = response.meanings;
             if (!meaning) {
-                throw new Error(notices.noMeaning);
+                throw new NoticeError(notices.noMeaning);
             }
 
             const [definition] = meaning.definitions;
             if (!definition) {
-                throw new Error(notices.noDefinition);
+                throw new NoticeError(notices.noDefinition);
             }
 
             const definitionText = definition.definition.toLowerCase();
-
             navigator.clipboard.writeText(definitionText);
 
-            const noticeString = strings.formatString(notices.definition, word, definitionText) as string;
-            new Notice(noticeString, Constants.DICTIONARY_NOTICE_LENGTH);
+            return definitionText;
         } catch (error) {
             console.error(error);
+
+            if (error instanceof AxiosError && error.response?.status === HttpStatusCode.NotFound) {
+                new Notice(notices.noDefinition);
+            }
+
+            if (error instanceof NoticeError) {
+                new Notice(error.message);
+            }
         }
     };
 }

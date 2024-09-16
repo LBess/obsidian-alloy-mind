@@ -31,6 +31,9 @@ export const en: PluginStrings = {
     },
     notices: {
         lookupWord: {
+            noEditor: 'No editor is open',
+            noSelection: 'No word is selected',
+            noWord: 'No word is selected',
             noData: 'No data returned',
             noMeaning: 'No meaning returned',
             noDefinition: 'No definition returned',

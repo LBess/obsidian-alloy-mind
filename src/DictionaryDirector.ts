@@ -6,6 +6,9 @@ import { DictionaryLookupResponse } from 'types/DictionaryLookupResponse';
 
 const notices = strings.notices.lookupWord;
 
+/**
+ * Documentation: https://dictionaryapi.dev/
+ */
 export class DictionaryDirector {
     private editor: Editor;
 
@@ -13,14 +16,14 @@ export class DictionaryDirector {
         this.editor = editor;
     }
 
-    lookupSelection = async () => {
-        const selection = this.editor.getSelection();
-        if (!selection) {
-            console.error('Selection is null');
+    lookupWord = async () => {
+        const word = this.editor.getSelection();
+        if (!word) {
+            console.error('Word is null');
             return;
         }
 
-        const url = buildDictionaryLookupUrl(selection);
+        const url = buildDictionaryLookupUrl(word);
         try {
             const { data } = await axios.get<DictionaryLookupResponse[]>(url);
             if (!data || data.length === 0) {
@@ -41,7 +44,7 @@ export class DictionaryDirector {
 
             navigator.clipboard.writeText(definitionText);
 
-            const noticeString = strings.formatString(notices.definition, selection, definitionText) as string;
+            const noticeString = strings.formatString(notices.definition, word, definitionText) as string;
             new Notice(noticeString, Constants.DICTIONARY_NOTICE_LENGTH);
         } catch (error) {
             console.error(error);

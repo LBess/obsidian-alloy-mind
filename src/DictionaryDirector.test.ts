@@ -22,36 +22,36 @@ const dictionaryLookupResponse: DictionaryLookupResponse = {
 
 describe('DictionaryDirector', () => {
     beforeEach(() => {
-        mockWriteText();
+        mockClipboardWriteText();
     });
 
     it('calls axios.get with the correct argument', async () => {
         const get = jest.fn().mockResolvedValue({ data: [dictionaryLookupResponse] });
         mockAxios(get);
 
-        const selection = 'foo';
-        const getSelection = jest.fn().mockReturnValue(selection);
+        const word = 'foo';
+        const getSelection = jest.fn().mockReturnValue(word);
         const editor = EditorFactory.create({ getSelection });
 
         const director = new DictionaryDirector(editor);
-        await director.lookupSelection();
+        await director.lookupWord();
 
         expect(get).toHaveBeenCalledTimes(1);
-        expect(get).toHaveBeenCalledWith(`${Constants.DICTIONARY_API_URL}${selection}`);
+        expect(get).toHaveBeenCalledWith(`${Constants.DICTIONARY_API_URL}${word}`);
     });
 
     it('calls clipboard.writeText with the correct argument', async () => {
-        const writeText = mockWriteText();
+        const writeText = mockClipboardWriteText();
 
         const get = jest.fn().mockResolvedValue({ data: [dictionaryLookupResponse] });
         mockAxios(get);
 
-        const selection = 'foo';
-        const getSelection = jest.fn().mockReturnValue(selection);
+        const word = 'foo';
+        const getSelection = jest.fn().mockReturnValue(word);
         const editor = EditorFactory.create({ getSelection });
 
         const director = new DictionaryDirector(editor);
-        await director.lookupSelection();
+        await director.lookupWord();
 
         expect(writeText).toHaveBeenCalledTimes(1);
         expect(writeText).toHaveBeenCalledWith(dictionaryLookupResponse.meanings[0].definitions[0].definition);
@@ -60,25 +60,25 @@ describe('DictionaryDirector', () => {
     it('does not call clipboard.writeText when an error is thrown', async () => {
         const consoleError = mockConsoleError();
 
-        const writeText = mockWriteText();
+        const writeText = mockClipboardWriteText();
 
         const error = new Error('foo');
         const get = jest.fn().mockRejectedValue(new Error('foo'));
         mockAxios(get);
 
-        const selection = 'foo';
-        const getSelection = jest.fn().mockReturnValue(selection);
+        const word = 'foo';
+        const getSelection = jest.fn().mockReturnValue(word);
         const editor = EditorFactory.create({ getSelection });
 
         const director = new DictionaryDirector(editor);
-        await director.lookupSelection();
+        await director.lookupWord();
 
         expect(writeText).not.toHaveBeenCalled();
         expect(consoleError).toHaveBeenCalledTimes(1);
         expect(consoleError).toHaveBeenCalledWith(error);
     });
 
-    it('does not call axios.get if no selection is returned', async () => {
+    it('does not call axios.get if no word is returned', async () => {
         const get = jest.fn();
         mockAxios(get);
         const consoleError = mockConsoleError();
@@ -87,14 +87,14 @@ describe('DictionaryDirector', () => {
         const editor = EditorFactory.create({ getSelection });
 
         const director = new DictionaryDirector(editor);
-        await director.lookupSelection();
+        await director.lookupWord();
 
         expect(get).not.toHaveBeenCalled();
         expect(consoleError).toHaveBeenCalledTimes(1);
     });
 });
 
-const mockWriteText = (writeText = jest.fn()) => {
+const mockClipboardWriteText = (writeText = jest.fn()) => {
     Object.assign(navigator, {
         clipboard: {
             writeText

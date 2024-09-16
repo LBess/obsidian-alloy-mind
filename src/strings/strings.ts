@@ -23,6 +23,11 @@ export interface PluginStrings {
             title: string;
             body: string;
         };
+        default: {
+            dailyNoteFolder: string;
+            dreamJournalFolder: string;
+            dreamSection: string;
+        };
     };
     notices: {
         lookupWord: {

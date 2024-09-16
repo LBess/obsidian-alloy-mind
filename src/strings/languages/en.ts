@@ -22,6 +22,11 @@ export const en: PluginStrings = {
         description: {
             title: 'Description',
             body: 'This is a custom Obsidian plugin I created to help with my usage of the app.'
+        },
+        default: {
+            dailyNoteFolder: 'Daily Notes',
+            dreamJournalFolder: 'Dream Journal',
+            dreamSection: '{0} Dream Journal'
         }
     },
     notices: {

@@ -31,6 +31,9 @@ export interface PluginStrings {
     };
     notices: {
         lookupWord: {
+            noEditor: string;
+            noSelection: string;
+            noWord: string;
             noData: string;
             noMeaning: string;
             noDefinition: string;

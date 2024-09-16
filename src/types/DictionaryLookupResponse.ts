@@ -1,4 +1,6 @@
-export interface DictionaryLookupResponse {
+export type GetDefinitionResponseData = GetDefinitionResponse[];
+
+interface GetDefinitionResponse {
     meanings: DictionaryMeaning[];
     word: string;
     sourceUrls: string[];

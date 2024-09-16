@@ -1,4 +1,4 @@
-import { AlloyMindSettings } from 'AlloyMindPlugin';
+import { AlloyMindSettings } from 'types/AlloyMindSettings';
 
 export class AlloyMindSettingsFactory {
     static create(settings?: Partial<AlloyMindSettings>): AlloyMindSettings {

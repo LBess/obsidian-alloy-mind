@@ -1,5 +1,6 @@
 export class Constants {
     static SUBSECTION_PREFIX = '###';
+
     static MD_EXTENSION = '.md';
 
     static DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en/';

@@ -10,9 +10,7 @@ export class NoActiveFileError extends Error {
 
 export const getActiveFile = (workspace: Workspace): TFile => {
     const activeFile = workspace.getActiveFile();
-    if (!activeFile) {
-        throw new NoActiveFileError();
-    }
+    if (!activeFile) throw new NoActiveFileError();
 
     return activeFile;
 };
@@ -32,9 +30,7 @@ export const getLinesFromFile = async (file: TFile, vault: Vault): Promise<strin
 
 export const buildDreamSectionFilter = (startIdx: number, endIdx: number) => {
     return (_: string, idx: number) => {
-        if (idx <= startIdx) {
-            return false;
-        }
+        if (idx <= startIdx) return false;
 
         return idx <= endIdx;
     };

@@ -5,12 +5,7 @@ import { NoteOrganizer } from 'NoteOrganizer';
 import { DictionaryDirector } from 'DictionaryDirector';
 import { AlloyMindSettings } from 'types/AlloyMindSettings';
 import { strings } from 'strings/strings';
-
-const DEFAULT_SETTINGS: AlloyMindSettings = {
-    dailyNoteFolder: 'Daily Notes',
-    dreamJournalFolder: 'Dream Journal',
-    dreamSection: '### Dream Journal'
-};
+import { DEFAULT_SETTINGS } from 'utils/DefaultSettings';
 
 const commandStrings = strings.commands;
 
@@ -64,6 +59,6 @@ export default class AlloyMindPlugin extends Plugin {
         }
 
         const director = new DictionaryDirector(editor);
-        await director.lookupSelection();
+        await director.lookupWord();
     };
 }

@@ -76,7 +76,10 @@ export default class AlloyMindPlugin extends Plugin {
 
         const director = new DictionaryDirector();
         const definition = await director.getDefinition(word);
-        if (!definition) return;
+        if (!definition) {
+            new Notice(noticeStrings.noDefinition);
+            return;
+        }
 
         const noticeString = strings.formatString(noticeStrings.definition, word, definition) as string;
         new Notice(noticeString, Constants.DEFINITION_NOTICE_LENGTH);

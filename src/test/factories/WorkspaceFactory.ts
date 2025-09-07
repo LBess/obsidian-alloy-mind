@@ -6,8 +6,10 @@ export class WorkspaceFactory {
         const htmlElement = document.createElement('div');
 
         return {
+            // @ts-expect-error - Expect undefined parent, b/c we can't bootstrap that object
             leftSplit: workspace?.leftSplit ?? {
                 collapsed: false,
+                parent: undefined,
                 toggle: jest.fn(),
                 collapse: jest.fn(),
                 expand: jest.fn(),
@@ -19,8 +21,10 @@ export class WorkspaceFactory {
                 trigger: jest.fn(),
                 tryTrigger: jest.fn()
             },
+            // @ts-expect-error - Expect undefined parent, b/c we can't bootstrap that object
             rightSplit: workspace?.rightSplit ?? {
                 collapsed: false,
+                parent: undefined,
                 toggle: jest.fn(),
                 collapse: jest.fn(),
                 expand: jest.fn(),
@@ -32,9 +36,11 @@ export class WorkspaceFactory {
                 trigger: jest.fn(),
                 tryTrigger: jest.fn()
             },
+            // @ts-expect-error - Expect undefined parent, b/c we can't bootstrap that object
             rootSplit: workspace?.rootSplit ?? {
                 win: global.window,
                 doc: document,
+                parent: undefined,
                 getRoot: jest.fn(),
                 getContainer: jest.fn(),
                 on: jest.fn(),

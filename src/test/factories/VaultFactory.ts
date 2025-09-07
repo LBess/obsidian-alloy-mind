@@ -52,6 +52,7 @@ export class VaultFactory {
             trigger: vault?.trigger ?? jest.fn(),
             tryTrigger: vault?.tryTrigger ?? jest.fn(),
             configDir: vault?.configDir ?? '',
+            getAllFolders: vault?.getAllFolders ?? jest.fn()
         };
     }
 }

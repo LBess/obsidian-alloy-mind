@@ -33,9 +33,12 @@ export class AppFactory {
                 renameFile: jest.fn(),
                 generateMarkdownLink: jest.fn(),
                 getAvailablePathForAttachment: jest.fn(),
-                processFrontMatter: jest.fn()
+                processFrontMatter: jest.fn(),
+                trashFile: jest.fn()
             },
-            lastEvent: app?.lastEvent ?? null
+            lastEvent: app?.lastEvent ?? null,
+            loadLocalStorage: app?.loadLocalStorage ?? jest.fn(),
+            saveLocalStorage: app?.saveLocalStorage ?? jest.fn()
         };
     }
 }

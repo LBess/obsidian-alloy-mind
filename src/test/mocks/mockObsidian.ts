@@ -6,5 +6,6 @@
  */
 
 export class Notice {}
+export class WorkspaceParent {}
 
 export function debounce() {}
